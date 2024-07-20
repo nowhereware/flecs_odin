@@ -3,7 +3,7 @@ package flecs
 import "core:c"
 import "core:reflect"
 import "core:strings"
-import "core:runtime"
+import "base:runtime"
 import "core:fmt"
 
 @(private)
