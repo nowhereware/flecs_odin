@@ -7,31 +7,51 @@ when ODIN_OS == .Windows
     foreign import flecs "system:flecs.lib"
 }
 
+when ODIN_OS == .Linux {
+    foreign import flecs "./libflecs.a"
+}
+
+// ************************ WORKING API *********************************
+
+@(default_calling_convention = "c", link_prefix = "ecs_", private)
+foreign flecs {
+    // Vec
+    vec_init :: proc(allocator: ^Allocator, vec: ^Vec, size: size_t, elem_count: c.int32_t) ---
+    vec_init_w_dbg_info :: proc(allocator: ^Allocator, vec: ^Vec, size: size_t, elem_count: c.int32_t, type_name: cstring) --- // Do we support debug ?
+    vec_init_if :: proc(vec: ^Vec, size: size_t) ---
+    vec_fini :: proc(allocator: ^Allocator, vec: ^Vec, size: size_t) ---
+    vec_reset :: proc(allocator: ^Allocator, vec: ^Vec, size: size_t) ---
+    vec_clear :: proc(vec: ^Vec) ---
+    vec_append :: proc(allocator: ^Allocator, vec: ^Vec, size: size_t) -> rawptr ---
+    vec_remove :: proc(vec: ^Vec, size: size_t, elem: c.int32_t) ---
+    vec_remove_ordered :: proc(vec: ^Vec, size: size_t, index: c.int32_t) ---
+    vec_remove_last :: proc(vec: ^Vec) ---
+    vec_copy :: proc(allocator: ^Allocator, vec: ^Vec, size: size_t) -> Vec ---
+    vec_copy_shrink :: proc(allocator: ^Allocator, vec: ^Vec, size: size_t) -> Vec ---
+    vec_reclaim :: proc(allocator: ^Allocator, vec: ^Vec, size: size_t) ---
+    vec_set_size :: proc(allocator: ^Allocator, vec: ^Vec, size: size_t, elem_count: c.int32_t) ---
+    vec_set_min_size :: proc(allocator: ^Allocator, vec: ^Vec, size: size_t, elem_count: c.int32_t) ---
+    vec_set_min_size_w_type_info :: proc(allocator: ^Allocator, vec: ^Vec, size: size_t, elem_count: c.int32_t, ti: ^TypeInfo) ---
+    vec_set_min_count :: proc(allocator: ^Allocator, vec: ^Vec, size: size_t, elem_count: c.int32_t) ---
+    vec_set_min_count_zeromem :: proc(allocator: ^Allocator, vec: ^Vec, size: size_t, elem_count: c.int32_t) ---
+    vec_set_count :: proc(allocator: ^Allocator, vec: ^Vec, size: size_t, elem_count: c.int32_t) ---
+    vec_set_count_w_type_info :: proc(allocator: ^Allocator, vec: ^Vec, size: size_t, elem_count: c.int32_t, ti: ^TypeInfo) ---
+    vec_set_min_count_w_type_info :: proc(allocator: ^Allocator, vec: ^Vec, size: size_t, elem_count: c.int32_t, ti: ^TypeInfo) ---
+    vec_grow :: proc(allocator: ^Allocator, vec: ^Vec, size: size_t, elem_count: c.int32_t) -> rawptr ---
+    vec_count :: proc(vec: ^Vec) -> c.int32_t ---
+    vec_size :: proc(vec: ^Vec) -> c.int32_t ---
+    vec_get :: proc(vec: ^Vec, size: size_t, index: c.int32_t) -> rawptr ---
+    vec_first :: proc(vec: ^Vec) -> rawptr ---
+    vec_last :: proc(vec: ^Vec, size: size_t) -> rawptr ---
+}
+
+// ************************ END WORKING API *****************************
+
+
+
 @(default_calling_convention = "c", link_prefix = "_ecs", private)
 foreign flecs
 {
-    // Vector
-    _vector_new :: proc(elem_size: size_t, offset: c.int16_t, elem_count: c.int32_t) -> ^Vector ---
-    _vector_from_array :: proc(elem_size: size_t, offset: c.int16_t, elem_count: c.int32_t, array: [^]rawptr) -> ^Vector ---
-    _vector_zero :: proc(vector: ^Vector, elem_size: size_t, offset: c.int16_t) ---
-    _vector_add :: proc(array_inout: [^]Vector, elem_size: size_t, offset: c.int16_t) -> rawptr ---
-    _vector_insert_at :: proc(array_inout: [^]Vector, elem_size: size_t, offset: c.int16_t, index: c.int32_t) -> rawptr ---
-    _vector_addn :: proc(array_inout: [^]Vector, elem_size: size_t, offset: c.int16_t, elem_count: c.int32_t) -> rawptr ---
-    _vector_get :: proc(vector: ^Vector, elem_size: size_t, offset: c.int16_t, index: c.int32_t) -> rawptr ---
-    _vector_last :: proc(vector: ^Vector, elem_size: size_t, offset: c.int16_t) -> rawptr ---
-    _vector_set_min_size :: proc(array_inout: [^]Vector, elem_size: size_t, offset: c.int16_t, elem_count: c.int32_t) -> c.int32_t ---
-    _vector_set_min_count :: proc(vector_inout: [^]Vector, elem_size: size_t, offset: c.int16_t, elem_count: c.int32_t) -> c.int32_t ---
-    _vector_pop :: proc(vector: ^Vector, elem_size: size_t, offset: c.int16_t, value: rawptr) -> bool ---
-    _vector_move_index :: proc(dst: [^]Vector, src: ^Vector, elem_size: size_t, offset: c.int16_t, index: c.int32_t) -> c.int32_t ---
-    _vector_remove :: proc(vector: ^Vector, elem_size: size_t, offset: c.int16_t, index: c.int32_t) -> c.int32_t ---
-    _vector_reclaim :: proc(vector: [^]Vector, elem_size: size_t, offset: c.int16_t) ---
-    _vector_grow :: proc(vector: [^]Vector, elem_size: size_t, offset: c.int16_t, elem_count: c.int32_t) -> c.int32_t ---
-    _vector_set_size :: proc(vector: [^]Vector, elem_size: size_t, offset: c.int16_t, elem_count: c.int32_t) -> c.int32_t ---
-    _vector_set_count :: proc(vector: [^]Vector, elem_size: size_t, offset: c.int16_t, elem_count: c.int32_t) -> c.int32_t ---
-    _vector_first :: proc(vector: ^Vector, elem_size: size_t, offset: c.int16_t) -> rawptr ---
-    _vector_sort :: proc(vector: ^Vector, elem_size: size_t, offset: c.int16_t, compare_action: comparator_t) ---
-    _vector_copy :: proc(src: ^Vector, elem_size: size_t, offset: c.int16_t) -> ^Vector ---
-
     // Sparse
     _sparse_new :: proc(elem_size: size_t) -> ^Sparse ---
     _sparse_add :: proc(sparse: ^Sparse, elem_size: size_t) -> rawptr ---
@@ -70,24 +90,7 @@ foreign flecs
 @(default_calling_convention = "c", link_prefix = "ecs_")
 foreign flecs
 {
-    // Vector
-
-
-    // Free vector
-    vector_free :: proc(vector: ^Vector) ---
-    // Clear values in vector
-    vector_clear :: proc(vector: ^Vector) ---
-    // Assert when the provided size does not match the vector type
-    vector_assert_size :: proc(vector_inout: ^Vector, elem_size: size_t) ---
-    // Remove last element. This operation requires no swapping of values
-    vector_remove_last :: proc(vector: ^Vector) ---
-    // Return number of elements in vector.
-    vector_count :: proc(vector: ^Vector) -> c.int32_t ---
-    // Return size of vector.
-    vector_size :: proc(vector: ^Vector) -> c.int32_t ---
-
     // Sparse
-
 
     sparse_last_id :: proc(sparse: ^Sparse) -> c.uint64_t ---
     sparse_count :: proc(sparse: ^Sparse) -> c.int32_t ---
@@ -223,23 +226,6 @@ foreign flecs
     os_has_modules :: proc() -> bool ---
 
 
-    // Vec
-    vec_init :: proc(allocator: ^Allocator, vec: ^Vec, size: size_t, elem_count: c.int32_t) -> ^Vec ---
-    vec_fini :: proc(allocator: ^Allocator, vec: ^Vec, size: size_t) ---
-    vec_clear :: proc(vec: ^Vec) ---
-    vec_append :: proc(allocator: ^Allocator, vec: ^Vec, size: size_t) -> rawptr ---
-    vec_remove :: proc(vec: ^Vec, size: size_t, elem: c.int32_t) ---
-    vec_remove_last :: proc(vec: ^Vec) ---
-    vec_copy :: proc(allocator: ^Allocator, vec: ^Vec, size: size_t) -> Vec ---
-    vec_reclaim :: proc(allocator: ^Allocator, vec: ^Vec, size: size_t) ---
-    vec_set_size :: proc(allocator: ^Allocator, vec: ^Vec, size: size_t, elem_count: c.int32_t) ---
-    vec_set_count :: proc(allocator: ^Allocator, vec: ^Vec, size: size_t, elem_count: c.int32_t) ---
-    vec_grow :: proc(allocator: ^Allocator, vec: ^Vec, size: size_t, elem_count: c.int32_t) -> rawptr ---
-    vec_count :: proc(vec: ^Vec) -> c.int32_t ---
-    vec_size :: proc(vec: ^Vec) -> c.int32_t ---
-    vec_get :: proc(vec: ^Vec, size: size_t, index: c.int32_t) -> rawptr ---
-    vec_first :: proc(vec: ^Vec) -> rawptr ---
-    vec_last :: proc(vec: ^Vec, size: size_t) -> rawptr ---
 
 
     // API support

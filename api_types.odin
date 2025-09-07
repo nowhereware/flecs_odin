@@ -396,20 +396,6 @@ OperKind :: enum c.int
     NotFrom,
 }
 
-TermFlags :: enum u32
-{
-    Self = u32(1) << 1,
-    Up = u32(1) << 2,
-    Down = u32(1) << 3,
-    Cascade = u32(1) << 4,
-    Parent = u32(1) << 5,
-    IsVariable = u32(1) << 6,
-    IsEntity = u32(1) << 7,
-    Filter = u32(1) << 8,
-
-    TraverseFlags = (Up|Down|Self|Cascade|Parent),
-}
-
 TermId :: struct
 {
     id: Entity,

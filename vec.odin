@@ -1,6 +1,7 @@
 package flecs
 
 import "core:c"
+import "core:fmt"
 
 Vec :: struct
 {
@@ -11,12 +12,20 @@ Vec :: struct
 
 vec_init_t :: proc(allocator: ^Allocator, vec: ^Vec, $T: typeid, elem_count: c.int32_t) -> ^Vec
 {
-    return vec_init(allocator, vec, size_of(T), elem_count)
+    return vec_init_w_dbg_info(allocator, vec, size_of(T), elem_count, fmt.tprintf("vec<%v>", T))
+}
+
+vec_init_if_t :: proc(vec: ^Vec, $T: typeid) {
+    vec_init_if(vec, size_of(T))
 }
 
 vec_fini_t :: proc(allocator: ^Allocator, vec: ^Vec, $T: typeid)
 {
     vec_fini(allocator, vec, size_of(T))
+}
+
+vec_reset_t :: proc(allocator: ^Allocator, vec: ^Vec, $T: typeid) -> ^Vec {
+    return vec_reset(allocator, vec, size_of(T))
 }
 
 vec_append_t :: proc(allocator: ^Allocator, vec: ^Vec, $T: typeid) -> ^T
@@ -29,9 +38,17 @@ vec_remove_t :: proc(vec: ^Vec, $T: typeid, elem: c.int32_t)
     vec_remove(vec, size_of(T), elem)
 }
 
+vec_remove_ordered_t :: proc(vec: ^Vec, $T: typeid, elem: c.int32_t) {
+    vec_remove_ordered(vec, size_of(T), elem)
+}
+
 vec_copy_t :: proc(allocator: ^Allocator, vec: ^Vec, $T: typeid) -> Vec
 {
     return vec_copy(allocator, vec, size_of(T))
+}
+
+vec_copy_shrink_t :: proc(allocator: ^Allocator, vec: ^Vec, $T: typeid) -> Vec {
+    return vec_copy_shrink(allocator, vec, size_of(T))
 }
 
 vec_reclaim_t :: proc(allocator: ^Allocator, vec: ^Vec, $T: typeid)
@@ -42,6 +59,18 @@ vec_reclaim_t :: proc(allocator: ^Allocator, vec: ^Vec, $T: typeid)
 vec_set_size_t :: proc(allocator: ^Allocator, vec: ^Vec, $T: typeid, elem_count: c.int32_t)
 {
     vec_set_size(allocator, vec, size_of(T), elem_count)
+}
+
+vec_set_min_size_t :: proc(allocator: ^Allocator, vec: ^Vec, $T: typeid, elem_count: c.int32_t) {
+    vec_set_min_size(allocator, vec, size_of(T), elem_count)
+}
+
+vec_set_min_count_t :: proc(allocator: ^Allocator, vec: ^Vec, $T: typeid, elem_count: c.int32_t) {
+    vec_set_min_count(allocator, vec, size_of(T), elem_count)
+}
+
+vec_set_min_count_zeromem_t :: proc(allocator: ^Allocator, vec: ^Vec, $T: typeid, elem_count: c.int32_t) {
+    vec_set_min_count_zeromem(allocator, vec, size_of(T), elem_count)
 }
 
 vec_set_count_t :: proc(allocator: ^Allocator, vec: ^Vec, $T: typeid, elem_count: c.int32_t)
