@@ -10,26 +10,6 @@ STRBUF_INIT :: proc() -> StrBuf
 STRBUF_ELEMENT_SIZE :: 511
 STRBUF_MAX_LIST_DEPTH :: 32
 
-StrBufElement :: struct
-{
-    buffer_embedded: c.bool,
-    pos: c.int32_t,
-    buf: cstring,
-    next: ^StrBufElement,
-}
-
-StrBufElementEmbedded :: struct
-{
-    super: StrBufElement,
-    buf: [STRBUF_ELEMENT_SIZE + 1]c.char,
-}
-
-StrBufElementStr :: struct
-{
-    super: StrBufElement,
-    alloc_str: cstring,
-}
-
 StrBufListElem :: struct
 {
     count: c.int32_t,
@@ -38,16 +18,14 @@ StrBufListElem :: struct
 
 StrBuf :: struct
 {
-    buf: cstring,
-    max: c.int32_t,
-    size: c.int32_t,
-    elementCount: c.int32_t,
-    firstElement: StrBufElementEmbedded,
-    current: ^StrBufElement,
+    content: cstring,
+    length: size_t,
+    size: size_t,
+    
     list_stack: [STRBUF_MAX_LIST_DEPTH]StrBufListElem,
     list_sp: c.int32_t,
-    content: cstring,
-    length: c.int32_t,
+
+    small_string: cstring // this is a stack allocated char array originally, so idk what to do about that
 }
 
 strbuf_appendlit :: proc(buf: ^StrBuf, str: cstring) -> bool

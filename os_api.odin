@@ -29,6 +29,9 @@ os_api_strdup_t :: #type proc "c" (str: cstring) -> cstring
 os_thread_callback_t :: #type proc "c" (_: rawptr) -> rawptr
 os_api_thread_new_t :: #type proc "c" (callback: os_thread_callback_t, param: rawptr) -> os_thread_t
 os_api_thread_join_t :: #type proc "c" (thread: os_thread_t) -> rawptr
+os_api_thread_self_t :: #type proc "c" () -> os_thread_id_t
+os_api_task_new_t :: #type proc "c" (callback: os_thread_callback_t, param: rawptr) -> os_thread_t
+os_api_task_join_t :: #type proc "c" (thread: os_thread_t) -> rawptr
 
 // Atomic increment/decrement
 os_api_ainc_t :: #type proc "c" (value: ^c.int32_t) -> c.int32_t
@@ -63,6 +66,9 @@ os_api_dlproc_t :: #type proc "c" (lib: os_dl_t, procname: cstring) -> os_proc_t
 os_api_dlclose_t :: #type proc "c" (lib: os_dl_t)
 os_api_module_to_path_t :: #type proc "c" (module_id: cstring) -> cstring
 
+// Performance tracing
+os_api_perf_trace_t :: #type proc "c" (filename: cstring, line: size_t, name: cstring)
+
 when ODIN_OS != .WASI || ODIN_OS != .JS
 {
     GlobalOSApi :: OSApi {
@@ -96,6 +102,11 @@ OSApi :: struct
     // Threads
     thread_new_: os_api_thread_new_t,
     thread_join_: os_api_thread_join_t,
+    thread_self_: os_api_thread_self_t,
+
+    // Tasks
+    task_new_: os_api_thread_new_t,
+    task_join_: os_api_thread_join_t,
 
     // Atomic increment/decrement
     ainc_: os_api_ainc_t,
@@ -139,6 +150,10 @@ OSApi :: struct
     // or assets
     module_to_etc_: os_api_module_to_path_t,
 
+    // Performance tracing
+    perf_trace_push_: os_api_perf_trace_t,
+    perf_trace_pop_: os_api_perf_trace_t,
+
     // Trace level
     log_level_: c.int32_t,
 
@@ -153,6 +168,8 @@ OSApi :: struct
 
     // OS API flags
     flags_: flags32_t,
+
+    log_out_: rawptr
 }
 
 os_malloc :: proc(size: size_t) -> rawptr
@@ -177,7 +194,8 @@ os_calloc :: proc(size: size_t) -> rawptr
 
 os_alloca :: proc(size: size_t) -> rawptr
 {
-    return mem.alloc(cast(int)size)
+    mem, _ := mem.alloc(cast(int)size)
+    return mem
 }
 
 os_malloc_t :: proc($T: typeid) -> ^T
@@ -224,12 +242,6 @@ os_alloca_n :: proc($T: typeid, count: u32) -> ^T
 os_strdup :: proc(str: cstring) -> cstring
 {
     return GlobalOSApi.strdup_(str)
-}
-
-os_strset :: proc(dst: ^cstring, src: cstring)
-{
-    os_free(dst)
-    dst^ = os_strdup(src)
 }
 
 os_strlen :: proc(str: cstring) -> size_t

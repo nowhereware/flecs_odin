@@ -495,20 +495,6 @@ Var :: struct
 
 // Ref
 
-StackPage :: struct
-{
-    data: rawptr,
-    next: ^StackPage,
-    sp: c.int16_t,
-    id: c.uint32_t,
-}
-
-StackCursor :: struct
-{
-    cur: ^StackPage,
-    sp: c.int16_t,
-}
-
 PageIter :: struct
 {
     offset: c.int32_t,

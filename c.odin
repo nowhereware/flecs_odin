@@ -3,8 +3,8 @@ package flecs
 import "core:c"
 import "core:reflect"
 import "core:strings"
-import "core:runtime"
 import "core:fmt"
+import "base:runtime"
 
 @(private)
 _GetTypeName :: proc($T: typeid) -> string

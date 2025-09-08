@@ -4,8 +4,9 @@ import "core:c"
 
 BucketEntry :: struct
 {
-    next: ^BucketEntry,
     key: map_key_t,
+    value: map_val_t,
+    next: ^BucketEntry,
 }
 
 Bucket :: struct
@@ -16,14 +17,10 @@ Bucket :: struct
 Map :: struct
 {
     buckets: [^]Bucket,
-    buckets_end: ^Bucket,
-    elem_size: c.int16_t,
-    bucket_shift: c.uint8_t,
-    shared_allocator: bool,
     bucket_count: c.int32_t,
-    count: c.int32_t,
+    count: c.uint32_t, // Hardcoded as 26, also an unsigned.
+    bucket_shift: c.uint32_t, // Hardcoded as 6, also an unsigned.
     allocator: ^Allocator,
-    entry_allocator: ^BlockAllocator,
 }
 
 MapIter :: struct
@@ -31,77 +28,36 @@ MapIter :: struct
     map_t: ^Map,
     bucket: ^Bucket,
     entry: ^BucketEntry,
+    res: ^map_data_t
 }
 
 MapParams :: struct
 {
-    size: size_t,
     allocator: ^Allocator,
     entry_allocator: BlockAllocator,
-    initial_count: c.int32_t,
 }
 
-MAP_INIT :: proc($T: typeid) -> Map
-{
-    return {.elem_size = size_of(T)}
+map_count :: proc(map_t: ^Map) -> c.uint32_t {
+    return map_t.count
 }
 
-map_params_init :: proc(params: ^MapParams, allocator: ^Allocator, $T: typeid)
-{
-    _map_params_init(params, allocator, size_of(T))
+map_is_init :: proc(map_t: ^Map) -> bool {
+    return map_t.bucket_shift != 0
 }
 
-map_init :: proc(map_t: ^Map, $T: typeid, allocator: ^Allocator, initial_count: c.int32_t)
-{
-    _map_init(map_t, size_of(T), allocator, initial_count)
-}
+// TODO (@day): this shit needs to be figured out maybe??
+// #define ecs_map_get_ref(m, T, k) ECS_CAST(T**, ecs_map_get(m, k))
+// #define ecs_map_get_deref(m, T, k) ECS_CAST(T*, ecs_map_get_deref_(m, k))
+// #define ecs_map_get_ptr(m, k) ECS_CAST(void*, ecs_map_get_deref_(m, k))
+// #define ecs_map_ensure_ref(m, T, k) ECS_CAST(T**, ecs_map_ensure(m, k))
 
-map_init_w_params :: proc(map_t: ^Map, params: ^MapParams)
-{
-    _map_init_w_params(map_t, params)
-}
+// #define ecs_map_insert_ptr(m, k, v) ecs_map_insert(m, k, ECS_CAST(ecs_map_val_t, ECS_PTR_CAST(uintptr_t, v)))
+// #define ecs_map_insert_alloc_t(m, T, k) ECS_CAST(T*, ecs_map_insert_alloc(m, ECS_SIZEOF(T), k))
+// #define ecs_map_ensure_alloc_t(m, T, k) ECS_PTR_CAST(T*, (uintptr_t)ecs_map_ensure_alloc(m, ECS_SIZEOF(T), k))
+// #define ecs_map_remove_ptr(m, k) (ECS_PTR_CAST(void*, ECS_CAST(uintptr_t, (ecs_map_remove(m, k)))))
 
-map_init_if :: proc(map_t: ^Map, $T: typeid, allocator: ^Allocator, elem_count: c.int32_t)
-{
-    _map_init_if(map_t, size_of(T), allocator, elem_count)
-}
+// #define ecs_map_key(it) ((it)->res[0])
+// #define ecs_map_value(it) ((it)->res[1])
+// #define ecs_map_ptr(it) ECS_PTR_CAST(void*, ECS_CAST(uintptr_t, ecs_map_value(it)))
+// #define ecs_map_ref(it, T) (ECS_CAST(T**, &((it)->res[1])))
 
-map_init_w_params_if :: proc(map_t: ^Map, params: ^MapParams)
-{
-    _map_init_w_params_if(map_t, params)
-}
-
-map_new :: proc($T: typeid, allocator: ^Allocator, elem_count: c.int32_t) -> ^Map
-{
-    return _map_new(size_of(T), allocator, elem_count)
-}
-
-map_get :: proc(map_t: ^Map, $T: typeid, key: map_key_t) -> ^T
-{
-    return cast(^T)_map_get(map_t, size_of(T), key)
-}
-
-map_get_ptr :: proc(map_t: ^Map, $T: typeid, key: map_key_t) -> ^T
-{
-    return cast(^T)_map_get_ptr(map_t, key)
-}
-
-map_ensure :: proc(map_t: ^Map, $T: typeid, key: map_key_t) -> ^T
-{
-    return cast(^T)_map_ensure(map_t, size_of(T), key)
-}
-
-map_set :: proc(map_t: ^Map, key: map_key_t, payload: rawptr) -> rawptr
-{
-    return _map_set(map_t, size_of(payload), key, payload)
-}
-
-map_next :: proc(iter: ^MapIter, $T: typeid, key: ^map_key_t) -> ^T
-{
-    return cast(^T)_map_next(iter, size_of(T), key)
-}
-
-map_next_ptr :: proc(iter: ^MapIter, $T: typeid, key: ^map_key_t) -> T
-{
-    return cast(T)_map_next_ptr(iter, key)
-}

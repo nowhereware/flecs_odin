@@ -11,7 +11,9 @@ flags64_t :: c.uint64_t
 
 size_t :: c.int32_t
 
-map_key_t :: c.uint64_t
+map_data_t :: c.uint64_t
+map_key_t :: map_data_t
+map_val_t :: map_data_t
 
 va_list :: cstring
 
@@ -20,6 +22,8 @@ os_cond_t :: c.uintptr_t
 os_mutex_t :: c.uintptr_t
 os_dl_t :: c.uintptr_t
 os_sock_t :: c.uintptr_t
+
+os_thread_id_t :: c.uint64_t
 
 ftime_t :: c.float
 

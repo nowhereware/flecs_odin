@@ -3,11 +3,22 @@ package flecs
 import "core:c"
 import "core:fmt"
 
-Vec :: struct
-{
-    array: [^]rawptr,
-    count: c.int32_t,
-    size: c.int32_t,
+when FLECS_SANITIZE {
+    Vec :: struct
+    {
+        array: [^]rawptr,
+        count: c.int32_t,
+        size: c.int32_t,
+        elem_size: size_t,
+        type_name: cstring
+    }
+} else {
+    Vec :: struct
+    {
+        array: [^]rawptr,
+        count: c.int32_t,
+        size: c.int32_t,
+    }
 }
 
 vec_init_t :: proc(allocator: ^Allocator, vec: ^Vec, $T: typeid, elem_count: c.int32_t) -> ^Vec
