@@ -215,7 +215,7 @@ foreign flecs {
     mini :: proc() -> ^World ---
 
     // Create a new world with arguments
-    init_w_arguments :: proc(argc: c.int, argv: [^]cstring) -> ^World ---
+    init_w_args :: proc(argc: c.int, argv: [^]cstring) -> ^World ---
 
     // Delete a world
     fini :: proc(world: ^World) -> c.int ---
@@ -231,6 +231,136 @@ foreign flecs {
 
     // Get flags set on the world
     world_get_flags :: proc(world: ^World) -> flags32_t ---
+
+    // Begin Frame
+    frame_begin :: proc(world: ^World, delta_time: ftime_t) -> ftime_t ---
+
+    // End frame
+    frame_end :: proc(world: ^World) ---
+
+    // Register action to be executed once after frame
+    run_post_frame :: proc(world: ^World, action: fini_action_t, ctx: rawptr) ---
+
+    // Signal exit
+    quit :: proc(world: ^World) ---
+
+    // Return whether a quit has been requested
+    should_quit :: proc(world: ^World) -> bool ---
+
+    // Measure frame time
+    measure_frame_time :: proc(world: ^World, enable: bool) ---
+
+    // Measure system time
+    measure_system_time :: proc(world: ^World, enable: bool) ---
+
+    // Set target frames per second (FPS) for application
+    set_target_fps :: proc(world: ^World, fps: ftime_t) ---
+
+    // Set default query flags
+    set_default_query_flags :: proc(world: ^World, flags: flags32_t) ---
+
+    // Commands
+
+    // Begin readonly mode
+    readonly_begin :: proc(world: ^World, multi_threaded: bool) -> bool ---
+
+    // End readonly mode
+    readonly_end :: proc(world: ^World) ---
+
+    // Merge world or stage
+    merge :: proc(world: ^World) ---
+
+    // Defer operations until end of frame
+    defer_begin :: proc(world: ^World) -> bool ---
+
+    // Test if deferring is enabled for current stage
+    is_deferred :: proc(world: ^World) -> bool ---
+
+    // End block of operations to defer
+    defer_end :: proc(world: ^World) -> bool ---
+
+    // Suspend deferring but do not flush the queue
+    defer_suspend :: proc(world: ^World) ---
+
+    // Resume deferring
+    defer_resume :: proc(world: ^World) ---
+
+    // Configure world to have N stages
+    set_stage_count :: proc(world: ^World, stages: c.int32_t) ---
+
+    // Get number of configured stages
+    get_stage_count :: proc(world: ^World) -> c.int32_t ---
+
+    // Get stage-specific world pointer
+    get_stage :: proc(world: ^World, stage_id: c.int32_t) -> ^World ---
+
+    // Test whether the current world is readonly
+    stage_is_readonly :: proc(world: ^World) -> bool ---
+
+    // Create unmanaged stage
+    stage_new :: proc(world: ^World) -> ^World ---
+
+    // Free unmanaged stage
+    stage_free :: proc(stage: ^World) ---
+
+    // Get stage id
+    stage_get_id :: proc(world: ^World) -> c.int32_t ---
+
+    // Misc
+
+    // Set a world context
+    set_ctx :: proc(world: ^World, ctx: rawptr, ctx_free: ctx_free_t) ---
+
+    // Set a world binding context
+    set_binding_ctx :: proc(world: ^World, ctx: rawptr, ctx_free: ctx_free_t) ---
+
+    // Get the world context
+    get_ctx :: proc(world: ^World) -> rawptr ---
+
+    // Get the world binding context
+    get_binding_ctx :: proc(world: ^World) -> rawptr ---
+
+    // Get build info
+    get_build_info :: proc() -> ^BuildInfo ---
+
+    // Get world info
+    get_world_info :: proc(world: ^World) -> ^WorldInfo ---
+
+    // Dimension the world for a specified number of entities
+    dim :: proc(world: ^World, entity_count: c.int32_t) ---
+
+    // Free unused memory
+    shrink :: proc(world: ^World) ---
+
+    // Set a range for issuing new entity ids
+    set_entity_range :: proc(world: ^World, id_start: Entity, id_end: Entity) ---
+
+    // Enable/disable range limits
+    enable_range_check :: proc(world: ^World, enable: bool) -> bool ---
+
+    // Get the largest issued entity id (not counting generation)
+    get_max_id :: proc(world: ^World) -> Entity ---
+
+    // Force aperiodic actions
+    run_aperiodic :: proc(world: ^World, flags: flags32_t) ---
+
+    // Cleanup empty tables
+    delete_empty_tables :: proc(world: ^World, desc: ^DeleteEmptyTablesDesc) -> c.int32_t ---
+
+    // Get world from poly
+    get_world :: proc(poly: poly_t) -> ^World ---
+
+    // Get entity from poly
+    get_entity :: proc(poly: poly_t) -> Entity ---
+
+    // Make a pair id
+    make_pair :: proc(first: Entity, second: Entity) -> id_t ---
+
+    // Begin exclusive thread access
+    exclusive_access_begin :: proc(world: ^World, thread_name: cstring) ---
+
+    // End exclusive access
+    exclusive_access_end :: proc(world: ^World, lock_world: bool) ---
 
 }
 
@@ -287,6 +417,9 @@ foreign flecs {
     // Same as table_add_id, but with additional diff parameter that contains
     // information about the traversed edge
     table_traverse_add :: proc (world: ^World, table: ^Table, id_ptr: ^id_t, diff: ^TableDiff) -> ^Table ---
+
+    // Test if pointer is of specified type.
+    poly_is_ :: proc(object: poly_t, type: c.int32_t) -> bool ---
 }
 
 // ************************ END WORKING API *****************************
@@ -323,81 +456,12 @@ foreign flecs
     // World API
 
 
-    // Create a new world
-    init :: proc() -> ^World ---
-
-    // Create a new world, but with a minimal set of modules loaded
-    mini :: proc() -> ^World ---
-
-    // Create a new world with args
-    init_w_args :: proc(argc: c.int, argv: []cstring) -> ^World ---
-
-    // Delete a world
-    fini :: proc(world: ^World) -> c.int ---
-
-    // Returns whether the world is being deleted
-    is_fini :: proc(world: ^World) -> c.bool ---
-
-    // Register action to be executed when world is destroyed
-    atfini :: proc(world: ^World, action: fini_action_t, ctx: rawptr) ---
-
-    // Register action to be executed once after frame.
-    run_post_frame :: proc(world: ^World, action: fini_action_t, ctx: rawptr) ---
-
-    // Signal exit
-    quit :: proc(world: ^World) ---
-
-    // Return whether a quit has signaled
-    should_quit :: proc(world: ^World) -> c.bool ---
-
     // Register hooks for component
     set_hooks_id :: proc(world: ^World, id: Entity, hooks: ^TypeHooks) ---
 
     // Get hooks for component
     get_hooks_id :: proc(world: ^World, id: Entity) -> ^TypeHooks ---
 
-    // Set a world context
-    set_context :: proc(world: ^World, ctx: rawptr) ---
-
-    // Get the world context
-    get_context :: proc(world: ^World) -> rawptr ---
-
-    // Get world info
-    get_world_info :: proc(world: ^World) -> ^WorldInfo ---
-
-    // Dimension the world for a specified number of entities
-    dim :: proc(world: ^World, entity_count: c.int32_t) ---
-
-    // Set a range for issuing new entity ids
-    set_entity_range :: proc(world: ^World, id_start: Entity, id_end: Entity) ---
-
-    // Sets the entity's generation in the world's sparse set
-    set_entity_generation :: proc(world: ^World, entity_with_generation: Entity) ---
-
-    // Enable/disable range limits
-    enable_range_check :: proc(world: ^World, enable: c.bool) -> c.bool ---
-
-    // Measure frame time
-    measure_frame_time :: proc(world: ^World, enable: c.bool) ---
-
-    // Measure system time
-    measure_system_time :: proc(world: ^World, enable: c.bool) ---
-
-    // Set target frames per second (FPS) for application
-    set_target_fps :: proc(world: ^World, fps: ftime_t) ---
-
-    // Force aperiodic actions
-    run_aperiodic :: proc(world: ^World, flags: flags32_t) ---
-
-    // Cleanup empty tables
-    delete_empty_tables :: proc(
-        world: ^World,
-        id: id_t,
-        clear_generation: c.uint16_t,
-        delete_generation: c.uint16_t,
-        min_id_count: c.int32_t,
-        time_budget_seconds: c.double,
-    ) -> c.int32_t ---
 
     // Create new entity id
     new_id :: proc(world: ^World) -> Entity ---
@@ -449,9 +513,6 @@ foreign flecs
 
     // Pairs
 
-
-    // Make a pair id
-    make_pair :: proc(first: Entity, second: Entity) -> id_t ---
 
 
     // Deleting Entities and components
@@ -938,58 +999,6 @@ foreign flecs
 
 
     // Staging
-
-
-    // Begin frame
-    frame_begin :: proc(world: ^World, delta_time: ftime_t) -> ftime_t ---
-
-    // End frame
-    frame_end :: proc(world: ^World) ---
-
-    // Begin readonly mode
-    readonly_begin :: proc(world: ^World) -> c.bool ---
-
-    // End readonly mode
-    readonly_end :: proc(world: ^World) ---
-
-    // Merge world or stage
-    merge :: proc(world: ^World) ---
-
-    // Defer operations until end of frame
-    defer_begin :: proc(world: ^World) -> c.bool ---
-
-    // Test if deferring is enabled for current stage
-    is_deferred :: proc(world: ^World) -> c.bool ---
-
-    // End block of operations to defer
-    defer_end :: proc(world: ^World) -> c.bool ---
-
-    // Suspend deferring but do not flush queue
-    defer_suspend :: proc(world: ^World) ---
-
-    // Resume deferring
-    defer_resume :: proc(world: ^World) ---
-
-    // Enable/disable automerging for world or stage
-    set_automerge :: proc(world: ^World, automerge: c.bool) ---
-
-    // Configure world to have N stages
-    set_stage_count :: proc(world: ^World, stages: c.int32_t) ---
-
-    // Get number of configured stages
-    get_stage_count :: proc(world: ^World) -> c.int32_t ---
-
-    // Get current stage id
-    get_stage_id :: proc(world: ^World) -> c.int32_t ---
-
-    // Get stage-specific world pointer
-    get_stage :: proc(world: ^World, stage_id: c.int32_t) -> ^World ---
-
-    // Get actual world from world
-    get_world :: proc(world: ^poly_t) -> ^World ---
-
-    // Test whether the current world is readonly
-    stage_is_readonly :: proc(world: ^World) -> c.bool ---
 
     // Create asynchronous stage
     async_stage_new :: proc(world: ^World) -> ^World ---

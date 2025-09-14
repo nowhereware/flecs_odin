@@ -155,6 +155,12 @@ when FLECS_DEBUG {
 
 }
 
+DeleteEmptyTablesDesc :: struct {
+    clear_generation: c.uint16_t,
+    delete_generaiton: c.uint16_t,
+    time_budget_seconds: c.double
+}
+
 Table :: struct
 {
     id: c.uint64_t,
