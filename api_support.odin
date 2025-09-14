@@ -10,6 +10,10 @@ MAX_RECURSION :: 512
 
 MAX_TOKEN_SIZE :: 256
 
+TABLE_VERSION_ARRAY_BITMASK :: 0xff
+
+TABLE_VERSION_ARRAY_SIZE :: TABLE_VERSION_ARRAY_BITMASK + 1
+
 OFFSET :: proc(o: c.uintptr_t, offset: c.uintptr_t) -> rawptr
 {
     return cast(rawptr)(o + offset)

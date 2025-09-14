@@ -4,15 +4,6 @@ import "core:c"
 
 // Private types defined in flecs.c
 
-TableCacheHdr :: struct
-{
-    cache: ^TableCache,
-    table: ^Table,
-    prev: ^TableCacheHdr,
-    next: ^TableCacheHdr,
-    empty: bool,
-}
-
 TableCacheList :: struct
 {
     first: ^TableCacheHdr,
@@ -24,7 +15,6 @@ TableCache :: struct
 {
     index: Map,
     tables: TableCacheList,
-    empty_tables: TableCacheList,
 }
 
 TableEventKind :: enum c.int
@@ -41,13 +31,6 @@ TableEvent :: struct
     event: Entity,
 }
 
-TableDiff :: struct
-{
-    added: Type,
-    removed: Type,
-    on_set: Type,
-    un_set: Type,
-}
 
 TableDiffBuilder :: struct
 {
@@ -298,7 +281,7 @@ RuleTermVars :: struct
 
 Monitor :: struct
 {
-    queries: ^Vector,
+    queries: ^Vec,
     is_dirty: bool,
 }
 
@@ -317,12 +300,13 @@ MarkedId :: struct
 
 Store :: struct
 {
-    entity_index: Sparse,
+    entity_index: EntityIndex,
     tables: Sparse,
     table_map: Hashmap,
     root: Table,
-    records: ^Vector,
-    marked_ids: ^Vector,
+    records: Vec,
+    marked_ids: Vec,
+    deleted_components: Vec,
 }
 
 WorldAllocators :: struct
@@ -349,8 +333,21 @@ EventDesc :: struct
     other_table: ^Table,
     offset: c.int32_t,
     count: c.int32_t,
+    entity: Entity,
     param: rawptr,
+    const_param: rawptr,
     observable: ^poly_t,
-    table_event: c.bool,
-    relationship: Entity,
+    flags: flags32_t
+}
+
+BuildInfo :: struct {
+    compiler: cstring,
+    addons: [^]cstring,
+    version: cstring,
+    version_major: c.int16_t,
+    version_minor: c.int16_t,
+    version_patch: c.int16_t,
+    debug: bool,
+    sanitize: bool,
+    perf_trace: bool
 }

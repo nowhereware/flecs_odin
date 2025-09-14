@@ -175,6 +175,63 @@ foreign flecs {
     os_has_logging :: proc() -> bool ---
     os_has_dl :: proc() -> bool ---
     os_has_modules :: proc() -> bool ---
+
+    // Find record for entity
+    record_find :: proc(world: ^World, entity: Entity) -> ^Record ---
+
+    // Get entity corresponding with record
+    record_get_entity :: proc(record: ^Record) -> Entity ---
+
+    // Begin exclusive write access to entity
+    write_begin :: proc(world: ^World, entity: Entity) -> ^Record ---
+
+    // End exclusive write access to entity
+    write_end :: proc(record: ^Record) ---
+
+    // Begin read access to entity
+    read_begin :: proc(world: ^World, entity: Entity) -> ^Record ---
+
+    // End read access to entity
+    read_end :: proc(record: ^Record) ---
+
+    // Get component from entity record
+    record_get_id :: proc(world: ^World, record: ^Record, id: id_t) -> rawptr ---
+
+    // Same as record_get_id but returns a mutable pointer.
+    record_ensure_id :: proc(world: ^World, record: ^Record, id: id_t) -> rawptr ---
+
+    // Test if entity for record has a (component) id
+    record_has_id :: proc(world: ^World, record: ^Record, id: id_t) -> bool ---
+
+    // Get component pointer from column/record
+    record_get_by_column :: proc(record: ^Record, column: c.int32_t, size: size_t) -> rawptr ---
+
+    // World api
+
+    // Create a new world
+    init :: proc() -> ^World ---
+
+    // Create a new world with just the core module
+    mini :: proc() -> ^World ---
+
+    // Create a new world with arguments
+    init_w_arguments :: proc(argc: c.int, argv: [^]cstring) -> ^World ---
+
+    // Delete a world
+    fini :: proc(world: ^World) -> c.int ---
+
+    // Returns whether the world is being deleted
+    is_fini :: proc(world: ^World) -> bool ---
+
+    // Register action to be executed when world is destroyed
+    atfini :: proc(world: ^World, action: fini_action_t, ctx: rawptr) ---
+
+    // Return entity identifiers in the world
+    get_entities :: proc(world: ^World) -> Entities ---
+
+    // Get flags set on the world
+    world_get_flags :: proc(world: ^World) -> flags32_t ---
+
 }
 
 @(default_calling_convention = "c", link_prefix = "flecs_")
@@ -202,6 +259,34 @@ foreign flecs {
     strfree :: proc(a: ^Allocator, str: cstring) ---
     dup :: proc(a: ^Allocator, size: size_t, src: rawptr) -> rawptr ---
 
+    // Get component record for component id
+    components_get :: proc(world: ^World, id: id_t) -> ^ComponentRecord ---
+
+    // Get component id from component record
+    component_get_id :: proc(cr: ^ComponentRecord) -> id_t ---
+
+    // Find table record for component record.
+    component_get_table :: proc(cr: ^ComponentRecord, table: ^Table) -> ^TableRecord ---
+
+    // Create a component record iterator
+    component_iter :: proc(cr: ^ComponentRecord, iter_out: ^TableCacheIter) -> bool ---
+
+    // Get the next table record for iterator
+    component_next :: proc(iter: ^TableCacheIter) -> ^TableRecord ---
+
+    // Get table records
+    table_records :: proc(table: ^Table) -> TableRecords ---
+
+    // Get component record from table record.
+    table_record_get_component :: proc(tr: ^TableRecord) -> ^ComponentRecord ---
+
+    // Get table id.
+    table_id :: proc(table: Table) -> c.uint64_t ---
+
+    // Find table by adding id to current table
+    // Same as table_add_id, but with additional diff parameter that contains
+    // information about the traversed edge
+    table_traverse_add :: proc (world: ^World, table: ^Table, id_ptr: ^id_t, diff: ^TableDiff) -> ^Table ---
 }
 
 // ************************ END WORKING API *****************************
@@ -406,24 +491,6 @@ foreign flecs
 
     // Get a mutable pointer to a component
     get_mut_id :: proc(world: ^World, entity: Entity, id: id_t) -> rawptr ---
-
-    // Begin exclusive write access to entity
-    write_begin :: proc(world: ^World, entity: Entity) -> ^Record ---
-
-    // End exclusive write access to entity
-    write_end :: proc(record: ^Record) ---
-
-    // Begin read access to entity
-    read_begin :: proc(world: ^World, entity: Entity) -> ^Record ---
-
-    // End read access to entity
-    read_end :: proc(record: ^Record) ---
-
-    // Get component from entity record
-    record_get_id :: proc(world: ^World, record: ^Record, id: id_t) -> rawptr ---
-
-    // Same as record_get_id, but returns a mutable pointer (syntactically the same)
-    record_get_mut_id :: proc(world: ^World, record: ^Record, id: id_t) -> rawptr ---
 
     // Emplace a component
     emplace_id :: proc(world: ^World, entity: Entity, id: id_t) -> rawptr ---
@@ -685,48 +752,6 @@ foreign flecs
     id_get_flags :: proc(world: ^World, id: id_t) -> flags32_t ---
 
 
-    // Filters
-
-
-    // Initialize filter
-    filter_init :: proc(world: ^World, desc: ^FilterDesc) -> ^Filter ---
-
-    // Deinitialize filter
-    filter_fini :: proc(filter: ^Filter) ---
-
-    // Finalize filter
-    filter_finalize :: proc(world: ^World, filter: ^Filter) -> c.int ---
-
-    // Find index for this variable
-    filter_find_this_var :: proc(filter: ^Filter) -> c.int32_t ---
-
-    // Convert term to string expression
-    term_str :: proc(world: ^World, term: ^Term) -> cstring ---
-
-    // Convert filter to string expression
-    filter_str :: proc(world: ^World, filter: ^Filter) -> cstring ---
-
-    // Return a filter iterator
-    filter_iter :: proc(world: ^World, filter: ^Filter) -> Iter ---
-
-    // Return a chained filter iterator
-    filter_chain_iter :: proc(it: ^Iter, filter: ^Filter) -> Iter ---
-
-    // Get pivot term for filter
-    filter_pivot_term :: proc(world: ^World, filter: ^Filter) -> c.int32_t ---
-
-    // Iterate tables matched by filter
-    filter_next :: proc(it: ^Iter) -> c.bool ---
-
-    // Same as filter_next, but always instanced
-    filter_next_instanced :: proc(it: ^Iter) -> c.bool ---
-
-    // Move resources of one filter to another
-    filter_move :: proc(dst: ^Filter, src: ^Filter) ---
-
-    // Copy resources of one filter to another
-    filter_copy :: proc(dst: ^Filter, src: ^Filter) ---
-
 
     // Queries
 
@@ -736,9 +761,6 @@ foreign flecs
 
     // Destroy a query
     query_fini :: proc(query: ^Query) ---
-
-    // Get filter from a query
-    query_get_filter :: proc(query: ^Query) -> ^Filter ---
 
     // Return a query iterator
     query_iter :: proc(world: ^World, query: ^Query) -> Iter ---
@@ -1073,8 +1095,6 @@ foreign flecs
         removed: ^Type,
     ) -> c.bool ---
 
-    // Find record for entity
-    record_find :: proc(world: ^World, entity: Entity) -> ^Record ---
 
     // Get component pointer from column/record
     record_get_column :: proc(r: ^Record, column: c.int32_t, c_size: size_t) -> rawptr ---

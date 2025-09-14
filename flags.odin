@@ -124,6 +124,12 @@ EventFlags :: enum uint
 /* Flags that can only be set by the query implementation */
 QueryFlags :: enum uint
 {
+    MatchPrefab = 1 << 1,
+    MatchDisabled = 1 << 2,
+    MatchEmptyTables = 1 << 3,
+    AllowUnresolvedByName = 1 << 6,
+    TableOnly = 1 << 7,
+    DetectChanges = 1 << 8,
     MatchThis = 1 << 11, /* Query has terms with $this source */
     MatchOnlyThis = 1 << 12, /* Query only has terms with $this source */
     MatchOnlySelf = 1 << 13, /* Query has no terms with up traversal */
@@ -159,6 +165,16 @@ TermFlags :: enum uint {
     IsSparse = 1 << 12,
     IsOr = 1 << 13,
     DontFragment = 1 << 14,
+    Self = 1 << 63,
+    Up = 1<< 62,
+    Trav = 1 << 61,
+    Cascade = 1 << 60,
+    Desc = 1 << 59,
+    IsVariable = 1 << 58,
+    IsEntity = 1 << 57,
+    IsName = 1 << 56,
+    TraverseFlags = (Self|Up|Trav|Cascade|Desc),
+    TermRefFlags = (TraverseFlags|IsVariable|IsEntity|IsName)
 }
 
 ObserverFlags :: enum uint {
@@ -172,6 +188,9 @@ ObserverFlags :: enum uint {
     YieldOnCreate = 1 << 8,  /* Yield matching entities when creating observer */
     YieldOnDelete = 1 << 9,  /* Yield matching entities when deleting observer */
     KeepAlive = 1 << 11, /* Observer keeps component alive (same value as EcsTermKeepAlive) */
+}
+
+QueryFlags :: enum uint {
 }
 
 TableFlags :: enum uint
@@ -217,4 +236,33 @@ AperiodicFlags :: enum uint
 {
     ComponentMonitors = 1 << 2,
     EmptyQueries = 1 << 4,
+}
+
+TypeHook :: enum flags32_t {
+    /* Flags that can be used to check which hooks a type has set */
+    CTOR = 1 << 0,
+    DTOR = 1 << 1,
+    COPY = 1 << 2,
+    MOVE = 1 << 3,
+    COPY_CTOR = 1 << 4,
+    MOVE_CTOR = 1 << 5,
+    CTOR_MOVE_DTOR = 1 << 6,
+    MOVE_DTOR = 1 << 7,
+    CMP = 1 << 8,
+    EQUALS = 1 << 9,
+
+    /* Flags that can be used to set/check which hooks of a type are invalid */
+    CTOR_ILLEGAL = 1 << 10,
+    DTOR_ILLEGAL = 1 << 12,
+    COPY_ILLEGAL = 1 << 13,
+    MOVE_ILLEGAL = 1 << 14,
+    COPY_CTOR_ILLEGAL = 1 << 15,
+    MOVE_CTOR_ILLEGAL = 1 << 16,
+    CTOR_MOVE_DTOR_ILLEGAL = 1 << 17,
+    MOVE_DTOR_ILLEGAL = 1 << 18,
+    CMP_ILLEGAL = 1 << 19,
+    EQUALS_ILLEGAL = 1 << 20,
+
+    HOOKS = (CTOR|DTOR|COPY|MOVE|COPY_CTOR|MOVE_CTOR|CTOR_MOVE_DTOR|MOVE_DTOR|CMP|EQUALS),
+    ILLEGAL = (CTOR_ILLEGAL|DTOR_ILLEGAL|COPY_ILLEGAL|MOVE_ILLEGAL|COPY_CTOR_ILLEGAL|MOVE_CTOR_ILLEGAL|CTOR_MOVE_DTOR_ILLEGAL|MOVE_DTOR_ILLEGAL|CMP_ILLEGAL|EQUALS_ILLEGAL)
 }

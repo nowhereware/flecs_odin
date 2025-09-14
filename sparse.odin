@@ -6,8 +6,8 @@ SPARSE_CHUNK_SIZE :: 4096
 
 Sparse :: struct
 {
-    dense: ^Vector,
-    pages: ^Vector,
+    dense: ^Vec,
+    pages: ^Vec,
     size: size_t,
     count: c.int32_t,
     max_id: c.int64_t,

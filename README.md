@@ -19,3 +19,6 @@ Bindings should work on all platforms, just place the dynamic library for flecs 
 - Types use PascalCase
 - Macros use WHATEVER_THIS_IS
 - Type aliases use typename_t
+
+## Not Implemented:
+- Deprecated Addon

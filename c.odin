@@ -505,17 +505,17 @@ value_new_t :: proc(world: ^World, $T: typeid) -> rawptr
 query_new :: proc(world: ^World, q_expr: cstring) -> ^Query
 {
     q: QueryDesc
-    q.filter.expr = q_expr
+    // q.filter.expr = q_expr
 
     return query_init(world, &q)
 }
 
-rule_new :: proc(world: ^World, q_expr: cstring) -> ^Rule
-{
-    f: FilterDesc
-    f.expr = q_expr
+// rule_new :: proc(world: ^World, q_expr: cstring) -> ^Rule
+// {
+//     f: FilterDesc
+//     f.expr = q_expr
 
-    // TODO: FIX
-    return {}
-    //return rule_init(world, &f)
-}
+//     // TODO: FIX
+//     return {}
+//     //return rule_init(world, &f)
+// }

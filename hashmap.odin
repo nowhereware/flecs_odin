@@ -15,6 +15,7 @@ Hashmap :: struct
     key_size: size_t,
     value_size: size_t,
     hashmap_allocator: ^BlockAllocator,
+    bucket_allocator: BlockAllocator,
     impl: Map,
 }
 

@@ -1,5 +1,6 @@
 package flecs
 
+//5669
 import "core:c"
 
 ID_FLAG_BIT :: c.ulonglong(1) << 63
@@ -13,6 +14,7 @@ IdBitFlags :: enum id_t
 }
 
 // Builtin components and tags
+
 EcsComponentGet :: proc(world: ^World) -> Entity
 {
     return id(world, EcsComponent)
@@ -23,25 +25,35 @@ EcsIdentifierGet :: proc(world: ^World) -> Entity
     return id(world, EcsIdentifier)
 }
 
-EcsIterableGet :: proc(world: ^World) -> Entity
-{
-    return id(world, EcsIterable)
-}
-
 EcsPolyGet :: proc(world: ^World) -> Entity
 {
     return id(world, EcsPoly)
 }
 
-EcsQuery : Entity : 5
-EcsObserver : Entity : 7
-
-// System module component ids
-EcsSystem : Entity : 10
+EcsDefaultChildComponentGet :: proc(world: ^World) -> Entity
+{
+    return id(world, EcsDefaultChildComponent)
+}
 
 EcsTickSourceGet :: proc(world: ^World) -> Entity
 {
     return id(world, EcsTickSource)
+}
+
+// I can't actually find a definition for this ANYWHERE
+EcsPipelineQuery :: struct {}
+
+EcsPipelineQueryGet :: proc(world: ^World) -> Entity
+{
+    return id(world, EcsPipelineQuery)
+}
+
+
+EcsPipeline :: Pipeline
+
+EcsPipelineGet :: proc(world: ^World) -> Entity
+{
+ return id(world, EcsPipeline)
 }
 
 // Timer module component ids
@@ -55,176 +67,128 @@ EcsRateFilterGet :: proc(world: ^World) -> Entity
     return id(world, EcsRateFilter)
 }
 
-// Root scope for builtin flecs entities
-EcsFlecs : Entity : HI_COMPONENT_ID + 1
+// Poly target components
+EcsQuery : Entity : HI_COMPONENT_ID + 0
+EcsObserver : Entity : HI_COMPONENT_ID + 1
+EcsSystem : Entity : HI_COMPONENT_ID + 2
 
-// Core module scope
-EcsFlecsCore : Entity : HI_COMPONENT_ID + 2
+// Core scopes & entities
+EcsWorld : Entity : HI_COMPONENT_ID + 3 // 
+EcsFlecs : Entity : HI_COMPONENT_ID + 4 //
+EcsFlecsCore : Entity : HI_COMPONENT_ID + 5 // 
+EcsFlecsInternals : Entity : HI_COMPONENT_ID + 6
+EcsModule : Entity : HI_COMPONENT_ID + 7 //
+EcsPrivate : Entity : HI_COMPONENT_ID + 8 //
+EcsPrefab : Entity : HI_COMPONENT_ID + 9 //
+EcsDisabled : Entity : HI_COMPONENT_ID + 10 //
+EcsNotQueryable : Entity : HI_COMPONENT_ID + 11 //
 
-// Entity associated with world
-EcsWorld : Entity : HI_COMPONENT_ID + 0
+EcsSlotOf : Entity : HI_COMPONENT_ID + 12 //
+EcsFlag : Entity : HI_COMPONENT_ID + 13
 
-// Wildcard entity
-EcsWildcard : Entity : HI_COMPONENT_ID + 10
+EcsWildcard : Entity : HI_COMPONENT_ID + 14 //
+EcsAny : Entity : HI_COMPONENT_ID + 15 //
+EcsThis : Entity : HI_COMPONENT_ID + 16 //
+EcsVariable : Entity : HI_COMPONENT_ID + 17 //
 
-// Any entity
-EcsAny : Entity : HI_COMPONENT_ID + 11
+// Traits
+EcsTransitive : Entity : HI_COMPONENT_ID + 18 //
+EcsReflexive : Entity : HI_COMPONENT_ID + 19 //
+EcsSymmetric : Entity : HI_COMPONENT_ID + 20 //
+EcsFinal : Entity : HI_COMPONENT_ID + 21 //
+EcsInheritable : Entity : HI_COMPONENT_ID + 22 //
 
-// This entity
-EcsThis : Entity : HI_COMPONENT_ID + 12
+/** Mark component as singleton. Singleton components may only be added to 
+ * themselves. */
+EcsSingleton : Entity : HI_COMPONENT_ID + 23
 
-// Variable entity ("$")
-EcsVariable : Entity : HI_COMPONENT_ID + 13
+EcsOnInstantiate : Entity : HI_COMPONENT_ID + 24 //
+EcsOverride : Entity : HI_COMPONENT_ID + 25 //
+EcsInherit : Entity : HI_COMPONENT_ID + 26 //
+EcsDontInherit : Entity : HI_COMPONENT_ID + 27 //
+EcsPairIsTag : Entity : HI_COMPONENT_ID + 28 //
+EcsExclusive : Entity : HI_COMPONENT_ID + 29 //
+EcsAcyclic : Entity : HI_COMPONENT_ID + 30 //
+EcsTraversable : Entity : HI_COMPONENT_ID + 31 //
+EcsWith : Entity : HI_COMPONENT_ID + 32 //
+EcsOneOf : Entity : HI_COMPONENT_ID + 33 //
+EcsCanToggle : Entity : HI_COMPONENT_ID + 34 //
+EcsTrait : Entity : HI_COMPONENT_ID + 35 //
+EcsRelationship : Entity : HI_COMPONENT_ID + 36
+EcsTarget : Entity : HI_COMPONENT_ID + 37 //
 
-// Marks relationship as transitive
-//
-// if R(X, Y) and R(Y, Z) then R(X, Z)
-EcsTransitive : Entity : HI_COMPONENT_ID + 14
+// Builtin relationships
+EcsChildOf : Entity : HI_COMPONENT_ID + 38 //
+EcsIsA : Entity : HI_COMPONENT_ID + 39 //
+EcsDependsOn : Entity : HI_COMPONENT_ID + 40 //
 
-// Marks relationship as reflexive
-//
-// R(X, X) == true
-EcsReflexive : Entity : HI_COMPONENT_ID + 15
+// Identifier tags
+EcsName : Entity : HI_COMPONENT_ID + 41 // 
+EcsSymbol : Entity : HI_COMPONENT_ID + 42 //
+EcsAlias : Entity : HI_COMPONENT_ID + 43 //
 
-// Entity/Component cannot be used as target in IsA relationships
-//
-// if IsA(X, Y) and Final(Y) throw error
-EcsFinal : Entity : HI_COMPONENT_ID + 17
+// Events
+EcsOnAdd : Entity : HI_COMPONENT_ID + 44 //
+EcsOnRemove : Entity : HI_COMPONENT_ID + 45 //
+EcsOnSet : Entity : HI_COMPONENT_ID + 46 //
+EcsOnDelete : Entity : HI_COMPONENT_ID + 47 //
+EcsOnDeleteTarget : Entity : HI_COMPONENT_ID + 48 //
+EcsOnTableCreate : Entity : HI_COMPONENT_ID + 49 //
+EcsOnTableDelete : Entity : HI_COMPONENT_ID + 50 //
 
-// Component is never inherited from an IsA target
-//
-// if DontInherit(X) and X(B) and IsA(A, B) then X(A) is false
-EcsDontInherit : Entity : HI_COMPONENT_ID + 18
+// Actions
+EcsRemove : Entity : HI_COMPONENT_ID + 54 //
+EcsDelete : Entity : HI_COMPONENT_ID + 55 //
 
-// Marks relationship as commutative.
-//
-// if R(X, Y) then R(Y, X)
-EcsSymmetric : Entity : HI_COMPONENT_ID + 16
+/** Panic cleanup policy. Must be used as target in pair with #EcsOnDelete or
+ * #EcsOnDeleteTarget. */
+EcsPanic : Entity : HI_COMPONENT_ID + 56
 
-// Relationship can only be added once, a 2nd instance will
-// replace the first
-//
-// R(X, Y) + R(X, Z) = R(X, Z)
-EcsExclusive : Entity : HI_COMPONENT_ID + 21
+// Storage
 
-// Marks relationship as acyclic
-EcsAcyclic : Entity : HI_COMPONENT_ID + 22
+/** Mark component as sparse */
+EcsSparse : Entity : HI_COMPONENT_ID + 57
 
-// Component is always added together with another component
-//
-// If With(R, O) and R(X) then O(X)
-// If With(R, O) and R(X, Y) then O(X, Y)
-EcsWith : Entity : HI_COMPONENT_ID + 23
+/** Mark component as non-fragmenting */
+EcsDontFragment : Entity : HI_COMPONENT_ID + 58
 
-// Relationship target is child of specified entity
-//
-// If OneOf(R, O) and R(X, Y), Y must be a child of O
-// If OneOf(R) and R(X, Y), Y must be a child of R
-EcsOneOf : Entity : HI_COMPONENT_ID + 24
+// Misc
+EcsOrderedChildren : Entity : HI_COMPONENT_ID + 60 //
 
-// Can be added to relationship to indicate that it should never
-// hold data when it or the relationship target is a component.
-EcsTag : Entity : HI_COMPONENT_ID + 19
+// Builtin predicate ids (used by query engine)
 
-// Tag to indicate that relationship is stored as union.
-EcsUnion : Entity : HI_COMPONENT_ID + 20
+/** Marker used to indicate `$var == ...` matching in queries. */
+EcsPredEq : Entity : HI_COMPONENT_ID + 61
 
-// Tag to indicate name identifier
-EcsName : Entity : HI_COMPONENT_ID + 30
+/** Marker used to indicate `$var == "name"` matching in queries. */
+EcsPredMatch : Entity : HI_COMPONENT_ID + 62
 
-// Tag to indicate symbol identifier
-EcsSymbol : Entity : HI_COMPONENT_ID + 31
+/** Marker used to indicate `$var ~= "pattern"` matching in queries. */
+EcsPredLookup : Entity : HI_COMPONENT_ID + 63
 
-// Tag to indicate alias identifier
-EcsAlias : Entity : HI_COMPONENT_ID + 32
+/** Marker used to indicate the start of a scope (`{`) in queries. */
+EcsScopeOpen : Entity : HI_COMPONENT_ID + 64
 
-// Used to express parent-child relationships
-EcsChildOf : Entity : HI_COMPONENT_ID + 25
+/** Marker used to indicate the end of a scope (`}`) in queries. */
+EcsScopeClose : Entity : HI_COMPONENT_ID + 65
 
-// Used to express inheritance relationships
-EcsIsA : Entity : HI_COMPONENT_ID + 26
+// Systems
+EcsMonitor : Entity : HI_COMPONENT_ID + 66 //
 
-// Used to express dependency relationships
-EcsDependsOn : Entity : HI_COMPONENT_ID + 27
-
-// Used to express a slot (used with prefab inheritance)
-EcsSlotOf : Entity : HI_COMPONENT_ID + 8
-
-// Tag added to module entities
-EcsModule : Entity : HI_COMPONENT_ID + 4
-
-// Tag to indicate an entity/component/system is private to a module
-EcsPrivate : Entity : HI_COMPONENT_ID + 5
-
-// Tag added to prefab entities
-EcsPrefab : Entity : HI_COMPONENT_ID + 6
-
-// When this tag is added to an entity it is skipped by all queries /
-// filters
-EcsDisabled : Entity : HI_COMPONENT_ID + 7
-
-// Event. Triggers when an id is added to an entity
-EcsOnAdd : Entity : HI_COMPONENT_ID + 33
-
-// Event. Triggers when an id is removed from an entity
-EcsOnRemove : Entity : HI_COMPONENT_ID + 34
-
-// Event. Triggers when a component is set for an entity
-EcsOnSet : Entity : HI_COMPONENT_ID + 35
-
-// Event. Triggers when a component is unset for an entity
-EcsUnSet : Entity : HI_COMPONENT_ID + 36
-
-// Event. Exactly-once observer for when an entity matches /
-// unmatches a filter
-EcsMonitor : Entity : HI_COMPONENT_ID + 61
-
-// Event. Triggers when an entity is deleted.
-EcsOnDelete : Entity : HI_COMPONENT_ID + 37
-
-// Event. Triggers when a table becomes empty
-EcsOnTableEmpty : Entity : HI_COMPONENT_ID + 40
-
-// Event. Triggers when a table becomes non-empty.
-EcsOnTableFill : Entity : HI_COMPONENT_ID + 41
-
-// Relationship used to define what should happen when a target
-// entity is deleted.
-EcsOnDeleteTarget : Entity : HI_COMPONENT_ID + 46
-
-// Remove cleanup policy.
-EcsRemove : Entity : HI_COMPONENT_ID + 50
-
-// Delete cleanup policy.
-EcsDelete : Entity : HI_COMPONENT_ID + 51
-
-// Panic cleanup policy.
-EcsPanic : Entity : HI_COMPONENT_ID + 52
-
-// When added to an entity, this informs serialization formats
-// which component to use when a value is assigned to an entity
-// without specifying the component.
-EcsDefaultChildComponent : Entity : HI_COMPONENT_ID + 55
-
-// Tag used to indicate when query is empty
-EcsEmpty : Entity : HI_COMPONENT_ID + 63
-
-// Pipeline module tags
-EcsPipelineTag : Entity : HI_COMPONENT_ID + 64
-EcsPreFrame : Entity : HI_COMPONENT_ID + 65
-EcsOnLoad : Entity : HI_COMPONENT_ID + 66
-EcsPostLoad : Entity : HI_COMPONENT_ID + 67
-EcsPreUpdate : Entity : HI_COMPONENT_ID + 68
-EcsOnUpdate : Entity : HI_COMPONENT_ID + 69
-EcsOnValidate : Entity : HI_COMPONENT_ID + 70
-EcsPostUpdate : Entity : HI_COMPONENT_ID + 71
-EcsPreStore : Entity : HI_COMPONENT_ID + 72
-EcsOnStore : Entity : HI_COMPONENT_ID + 73
-EcsPostFrame : Entity : HI_COMPONENT_ID + 74
-EcsPhase : Entity : HI_COMPONENT_ID + 75
-
-// EcsLastInternalComponentId
-
-EcsFirstUserComponentId :: 32
-
-EcsFirstUserEntityId :: HI_COMPONENT_ID + 128
+/** Tag used to indicate query is empty.
+ * This tag is removed automatically when a query becomes non-empty, and is not
+ * automatically re-added when it becomes empty.
+ */
+EcsEmpty : Entity : HI_COMPONENT_ID + 67
+EcsOnStart : Entity : HI_COMPONENT_ID + 69 //
+EcsPreFrame : Entity : HI_COMPONENT_ID + 70 //
+EcsOnLoad : Entity : HI_COMPONENT_ID + 71 //
+EcsPostLoad : Entity : HI_COMPONENT_ID + 72 //
+EcsPreUpdate : Entity : HI_COMPONENT_ID + 73 //
+EcsOnUpdate : Entity : HI_COMPONENT_ID + 74 //
+EcsOnValidate : Entity : HI_COMPONENT_ID + 75 //
+EcsPostUpdate : Entity : HI_COMPONENT_ID + 76 //
+EcsPreStore : Entity : HI_COMPONENT_ID + 77 //
+EcsOnStore : Entity : HI_COMPONENT_ID + 78 //
+EcsPostFrame : Entity : HI_COMPONENT_ID + 79 //
+EcsPhase : Entity : HI_COMPONENT_ID + 80 //
