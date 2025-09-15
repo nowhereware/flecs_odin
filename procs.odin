@@ -11,7 +11,7 @@ when ODIN_OS == .Linux {
     foreign import flecs "./libflecs.a"
 }
 
-// ************************ WORKING API *********************************
+// ************************ CORE API *********************************
 
 @(default_calling_convention = "c", link_prefix = "ecs_")
 foreign flecs {
@@ -1027,28 +1027,7 @@ foreign flecs {
     poly_is_ :: proc(object: poly_t, type: c.int32_t) -> bool ---
 }
 
-// ************************ END WORKING API *****************************
-
-
-
-@(default_calling_convention = "c", link_prefix = "_ecs", private)
-foreign flecs
-{
-
-    // Tracing
-    _deprecated :: proc(file: cstring, line: c.int32_t, msg: cstring) ---
-    _log_push :: proc(level: c.int32_t) ---
-    _log_pop :: proc(level: c.int32_t) ---
-    
-    // Logging
-    _log :: proc(level: c.int32_t, file: cstring, line: c.int32_t, fmt: cstring) ---
-    _logv :: proc(level: c.int, file: cstring, line: c.int32_t, fmt: cstring, args: va_list) ---
-    _abort :: proc(error_code: c.int32_t, file: cstring, line: c.int32_t, fmt: cstring) ---
-    _assert :: proc(condition: c.bool, error_code: c.int32_t, condition_str: cstring, file: cstring, line: c.int32_t, fmt: cstring, args: ..any) -> c.bool ---
-    _parser_error :: proc(name: cstring, expr: cstring, column: c.int64_t, fmt: cstring, args: ..any) ---
-    _parser_errorv :: proc(name: cstring, expr: cstring, column: c.int64_t, fmt: cstring, args: va_list) ---
-
-}
+// *********************** ADDONS **************************************
 
 @(default_calling_convention = "c", link_prefix = "ecs_")
 foreign flecs
@@ -1056,15 +1035,46 @@ foreign flecs
 
     // Log
 
+    // Log message indicating an operation is deprecated
+    deprecated_ :: proc(file: cstring, line: c.int32_t, msg: cstring) ---
+
+    // Increase log stack
+    log_push_ :: proc(level: c.int32_t) ---
+
+    // Decrease log stack
+    log_pop_ :: proc(level: c.int32_t) ---
 
     // Should current level be logged
-    should_log :: proc(level: c.int32_t) -> c.bool ---
+    should_log :: proc(level: c.int32_t) -> bool ---
 
     // Get description for error code
     strerror :: proc(error_code: c.int32_t) -> cstring ---
 
-    // Enable or disable tracing
+    print_ :: proc(level: c.int32_t, file: cstring, line: c.int32_t, fmt: cstring, #c_vararg args: ..any) ---
+
+    printv_ :: proc(level: c.int, file: cstring, line: c.int32_t, fmt: cstring, #c_vararg args: ..any) ---
+
+    log_ :: proc(level: c.int32_t, file: cstring, line: c.int32_t, fmt: cstring, #c_vararg args: ..any) ---
+
+    logv_ :: proc(level: c.int, file: cstring, line: c.int32_t, fmt: cstring, #c_vararg args: ..any) ---
+
+    abort_ :: proc(error_code: c.int32_t, file: cstring, line: c.int32_t, fmt: cstring, #c_vararg args: ..any) ---
+
+    assert_log_ :: proc(error_code: c.int32_t, file: cstring, line: c.int32_t, fmt: cstring, #c_vararg args: ..any) ---
+
+    parser_error_ :: proc(name: cstring, expr: cstring, column: c.int64_t, fmt: cstring, #c_vararg args: ..any) ---
+
+    parser_errorv_ :: proc(name: cstring, expr: cstring, column: c.int64_t, fmt: cstring, #c_vararg args: ..any) ---
+
+    parser_warning_ :: proc(name: cstring, expr: cstring, column: c.int64_t, fmt: cstring, #c_vararg args: ..any) ---
+
+    parser_warningv_ :: proc(name: cstring, expr: cstring, column: c.int64_t, fmt: cstring, #c_vararg args: ..any) ---
+
+    // Enable or disable log
     log_set_level :: proc(level: c.int) -> c.int ---
+
+    // Get current log level
+    log_get_level :: proc() -> c.int ---
 
     // Enable/disable tracing with colors
     log_enable_colors :: proc(enabled: c.bool) -> c.bool ---
@@ -1078,7 +1088,14 @@ foreign flecs
     // Get last logged error code
     log_last_error :: proc() -> c.int ---
 
+    log_start_capture :: proc(capture_try: bool) ---
 
+    log_stop_capture :: proc() -> cstring ---
+}
+
+@(default_calling_convention = "c", link_prefix = "ecs_")
+foreign flecs
+{
     // App addon
 
 

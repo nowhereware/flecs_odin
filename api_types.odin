@@ -824,15 +824,6 @@ IterKind :: enum c.int
     None,
 }
 
-FilterIter :: struct
-{
-    filter: ^Filter,
-    kind: IterKind,
-    term_iter: TermIter,
-    matches_left: c.int32_t,
-    pivot_term: c.int32_t,
-}
-
 QueryIter :: struct
 {
     query: ^Query,
@@ -845,13 +836,6 @@ QueryIter :: struct
     skip_count: c.int32_t,
 }
 
-SnapshotIter :: struct
-{
-    filter: Filter,
-    tables: ^Vector,
-    index: c.int32_t,
-}
-
 SparseIter :: struct
 {
     sparse: ^Sparse,
@@ -859,18 +843,6 @@ SparseIter :: struct
     size: size_t,
     i: c.int32_t,
     count: c.int32_t,
-}
-
-RuleIter :: struct
-{
-    rule: ^Rule,
-    registers: [^]Var,
-    op_ctx: ^RuleOpCtx,
-    columns: [^]c.int32_t,
-    entity: Entity,
-    redo: bool,
-    op: c.int32_t,
-    sp: c.int32_t,
 }
 
 iter_cache_ids :: u32(1) << u32(0)
