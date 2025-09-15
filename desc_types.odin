@@ -179,3 +179,9 @@ QueryGroupInfo :: struct
     table_count: c.int32_t,
     ctx: rawptr,
 }
+
+QueryCount :: struct {
+    results: c.int32_t,
+    entities: c.int32_t,
+    tables: c.int32_t
+}

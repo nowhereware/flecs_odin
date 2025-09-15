@@ -626,6 +626,111 @@ foreign flecs {
 
     // Convert string to a component
     id_from_str :: proc(world: ^World, expr: cstring) -> id_t ---
+
+    // Queries
+
+    // Test whether term ref is set
+    term_ref_is_set :: proc(ref: ^TermRef) -> bool ---
+
+    // Test whether a term is set
+    term_is_initialized :: proc(term: ^Term) -> bool ---
+
+    // Is term matched on $this variable
+    term_match_this :: proc(term: ^Term) -> bool ---
+
+    // Is term matched on 0 source
+    term_match_0 :: proc(term: ^Term) -> bool ---
+
+    // Convert term to string expression.
+    term_str :: proc(world: ^World, term: ^Term) -> cstring ---
+
+    // Convert query to string expression.
+    query_str :: proc(query: ^Query) -> cstring ---
+
+    // Each iterator
+
+    // Iterate all entities with specified (component id).
+    each_id :: proc(world: ^World, component: id_t) -> Iter ---
+
+    // Progress an iterator created with each_id().
+    each_next :: proc(it: ^Iter) -> bool ---
+
+    // Iterate children of parent
+    children :: proc(world: ^World, parent: Entity) -> Iter ---
+
+    // Progress an iterator created with ecs_children().
+    children_next :: proc(it: ^Iter) -> bool ---
+
+    // Queries
+
+    // Create a query
+    query_init :: proc(world: ^World, desc: ^QueryDesc) -> ^Query ---
+
+    // Delete a query
+    query_fini :: proc(query: ^Query) ---
+
+    // Find variable index
+    query_find_var :: proc(query: ^Query, name: cstring) -> c.int32_t ---
+
+    // Get variable name
+    query_var_name :: proc(query: ^Query, var_id: c.int32_t) -> cstring ---
+
+    // Test if variable is an entity
+    query_var_is_entity :: proc(query: ^Query, var_id: c.int32_t) -> bool ---
+
+    // Create a query iterator
+    query_iter :: proc(world: ^World, query: ^Query) -> Iter ---
+
+    // Progress query iterator
+    query_next :: proc(it: ^Iter) -> bool ---
+
+    // Match entity with query
+    query_has :: proc(query: ^Query, entity: Entity, it: ^Iter) -> bool ---
+
+    // Match table with query
+    query_has_table :: proc(query: ^Query, table: ^Table, it: ^Iter) -> bool ---
+
+    // Match range with query
+    query_has_range :: proc(query: ^Query, range: ^TableRange, it: ^Iter) -> bool ---
+
+    // Returns how often a match event happend for a cached query
+    query_match_count :: proc(query: ^Query) -> c.int32_t ---
+
+    // Convert query to a string
+    query_plan :: proc(query: ^Query) -> cstring ---
+
+    // Convert query to string with profile
+    query_plan_w_profile :: proc(query: ^Query, it: ^Iter) -> cstring ---
+
+    // Populate variables from key-value string
+    query_args_parse :: proc(query: ^Query, it: ^Iter, expr: cstring) -> cstring ---
+
+    // Returns whether the query data changed since the last iteration
+    query_changed :: proc(query: ^Query) -> bool ---
+
+    // Get query object
+    query_get :: proc(world: ^World, query: Entity) -> ^Query ---
+
+    // Skip a table while iterating
+    iter_skip :: proc(it: ^Iter) ---
+
+    // Set group to iterate for query iterator
+    iter_set_group :: proc(it: ^Iter, group_id: c.uint64_t) ---
+
+    // Get context of query group
+    query_get_group_ctx :: proc(query: ^Query, group_id: c.uint64_t) -> rawptr ---
+
+    // Get information about query group
+    query_get_group_info :: proc(query: ^Query, group_id: c.uint64_t) -> ^QueryGroupInfo ---
+
+    // Returns number of entities and results the query matches with.
+    query_count :: proc(query: ^Query) -> QueryCount ---
+
+    // Does query return one or more results
+    query_is_true :: proc(query: ^Query) -> bool ---
+
+    // Get query used to populate cache
+    query_get_cache_query :: proc(query: ^Query) -> ^Query ---
 }
 
 @(default_calling_convention = "c", link_prefix = "flecs_")
@@ -713,164 +818,6 @@ foreign flecs
 foreign flecs
 {
 
-    // API support
-    module_path_from_c :: proc(c_name: cstring) -> cstring ---
-    default_ctor :: proc(ptr: rawptr, count: c.int32_t, ctx: ^TypeInfo) ---
-
-    // World API
-
-
-    // Register hooks for component
-    set_hooks_id :: proc(world: ^World, id: Entity, hooks: ^TypeHooks) ---
-
-    // Get hooks for component
-    get_hooks_id :: proc(world: ^World, id: Entity) -> ^TypeHooks ---
-
-
-    // Find or create a component
-    component_init :: proc(world: ^World, desc: ^ComponentDesc) -> Entity ---
-
-
-
-    // Get the storage table of an entity
-    get_storage_table :: proc(world: ^World, entity: Entity) -> ^Table ---
-
-    // Get the type info for an id
-    get_type_info :: proc(world: ^World, id: id_t) -> ^TypeInfo ---
-
-    // Get the type for an id
-    get_typeid :: proc(world: ^World, id: id_t) -> Entity ---
-
-    // Returns whether specified id is a tag
-    id_is_tag :: proc(world: ^World, id: id_t) -> Entity ---
-
-    // Returns whether specified id is in use
-    id_in_use :: proc(world: ^World, id: id_t) -> c.bool ---
-
-    // Convert id flag to string
-    id_flag_str :: proc(id_flags: id_t) -> cstring ---
-
-    // Convert id to string
-    id_str :: proc(world: ^World, id: id_t) -> cstring ---
-
-    // Write id string to buffer
-    id_str_buf :: proc(world: ^World, id: id_t, buf: ^StrBuf) ---
-
-    // Terms
-
-
-    // Iterator for a single (component) id
-    term_iter :: proc(world: ^World, term: ^Term) -> Iter ---
-
-    // Return a chained term iterator
-    term_chain_iter :: proc(it: ^Iter, term: ^Term) -> Iter ---
-
-    // Progress a term iterator
-    term_next :: proc(it: ^Iter) -> c.bool ---
-
-    // Iterator for a parent's children
-    children :: proc(world: ^World, parent: Entity) -> Iter ---
-
-    // Progress a children iterator
-    children_next :: proc(it: ^Iter) -> c.bool ---
-
-    // Test whether term id is set
-    term_id_is_set :: proc(id: ^TermId) -> c.bool ---
-
-    // Test whether a term is set
-    term_is_initialized :: proc(term: ^Term) -> c.bool ---
-
-    term_match_this :: proc(term: ^Term) -> c.bool ---
-
-    term_match_0 :: proc(term: ^Term) -> c.bool ---
-
-    // Finalize term
-    term_finalize :: proc(world: ^World, term: ^Term) -> c.int ---
-
-    // Copy resources of a term to another term
-    term_copy :: proc(src: ^Term) -> Term ---
-
-    // Move resources of a term to another term
-    term_move :: proc(src: ^Term) -> Term ---
-
-    // Free resources of term
-    term_fini :: proc(term: ^Term) ---
-
-    // Utility to match an id with a pattern
-    id_match :: proc(id: id_t, pattern: id_t) -> c.bool ---
-
-    // Utility to check if id is a pair
-    id_is_pair :: proc(id: id_t) -> c.bool ---
-
-    // Utility to check if id is a wildcard
-    id_is_wildcard :: proc(id: id_t) -> c.bool ---
-
-    // Utility to check if id is valid
-    id_is_valid :: proc(world: ^World, id: id_t) -> c.bool ---
-
-    // Get flags associated with id
-    id_get_flags :: proc(world: ^World, id: id_t) -> flags32_t ---
-
-
-
-    // Queries
-
-
-    // Create a query
-    query_init :: proc(world: ^World, desc: ^QueryDesc) -> ^Query ---
-
-    // Destroy a query
-    query_fini :: proc(query: ^Query) ---
-
-    // Return a query iterator
-    query_iter :: proc(world: ^World, query: ^Query) -> Iter ---
-
-    // Progress the query iterator
-    query_next :: proc(iter: ^Iter) -> c.bool ---
-
-    // Same as query_next, but always instanced
-    query_next_instanced :: proc(iter: ^Iter) -> c.bool ---
-
-    // Alternative to query_next that only returns matched tables
-    query_next_table :: proc(iter: ^Iter) -> c.bool ---
-
-    // Populate iterator fields
-    query_populate :: proc(iter: ^Iter) ---
-
-    // Returns whether the query data changed since the last iteration
-    query_changed :: proc(query: ^Query, it: ^Iter) -> c.bool ---
-
-    // Skip a table while iterating
-    query_skip :: proc(it: ^Iter) ---
-
-    // Set group to iterate for query iterator
-    query_set_group :: proc(it: ^Iter, group_id: c.uint64_t) ---
-
-    // Get context of query group
-    query_get_group_ctx :: proc(query: ^Query, group_id: c.uint64_t) -> rawptr ---
-
-    // Get information about query group
-    query_get_group_info :: proc(query: ^Query, group_id: c.uint64_t) -> ^QueryGroupInfo ---
-
-    // Returns whether query is orphaned
-    query_orphaned :: proc(query: ^Query) -> c.bool ---
-
-    // Convert query to string
-    query_str :: proc(query: ^Query) -> cstring ---
-
-    // Returns number of tables query matched with
-    query_table_count :: proc(query: ^Query) -> c.int32_t ---
-
-    // Returns number of empty tables query matched with
-    query_empty_table_count :: proc(query: ^Query) -> c.int32_t ---
-
-    // Returns number of entities query matched with
-    query_entity_count :: proc(query: ^Query) -> c.int32_t ---
-
-    // Get entity associated with query
-    query_entity :: proc(query: ^Query) -> Entity ---
-
-    
     // Observers
 
 
