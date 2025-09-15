@@ -731,6 +731,242 @@ foreign flecs {
 
     // Get query used to populate cache
     query_get_cache_query :: proc(query: ^Query) -> ^Query ---
+
+    // Observers
+
+    // Send event
+    emit :: proc(world: ^World, desc: ^EventDesc) ---
+
+    // Enqueue event
+    enqueue :: proc(world: ^World, desc: ^EventDesc) ---
+
+    // Create observer
+    observer_init :: proc(world: ^World, desc: ^ObserverDesc) -> Entity ---
+
+    // Get observer object.
+    observer_get :: proc(world: ^World, observer: Entity) -> ^Observer ---
+
+    // Iterators
+
+    // Progress any iterator
+    iter_next :: proc(it: ^Iter) -> bool ---
+
+    // Cleanup iterator resources
+    iter_fini :: proc(it: ^Iter) ---
+
+    // Count number of matched entities in query
+    iter_count :: proc(it: ^Iter) -> c.int32_t ---
+
+    // Test if iterator is true
+    iter_is_true :: proc(it: ^Iter) -> bool ---
+
+    // Get first matching entity from iterator.
+    iter_first :: proc(it: ^Iter) -> Entity ---
+
+    // Set value for iterator variable.
+    iter_set_var :: proc(it: ^Iter, var_id: c.int32_t, entity: Entity) ---
+
+    // Same as iter_set_var, but for a table.
+    iter_set_var_as_table :: proc(it: ^Iter, var_id: c.int32_t, table: ^Table) ---
+
+    // Same as iter_set_var, but for a range of entities
+    iter_set_var_as_range :: proc(it: ^Iter, var_id: c.int32_t, range: ^TableRange) ---
+
+    // Get value of iterator variable as entity
+    iter_get_var :: proc(it: ^Iter, var_id: c.int32_t) -> Entity ---
+
+    // Get variable name
+    iter_get_var_name :: proc(it: ^Iter, var_id: c.int32_t) -> cstring ---
+
+    // Get number of variables
+    iter_get_var_count :: proc(it: ^Iter) -> c.int32_t ---
+
+    // Get variable array.
+    iter_get_vars :: proc(it: ^Iter) -> ^Var ---
+
+    // Get value of iterator variable as table
+    iter_get_var_as_table :: proc(it: ^Iter, var_id: c.int32_t) -> ^Table ---
+
+    // Get value of iterator variable as table range.
+    iter_get_var_as_range :: proc(it: ^Iter, var_id: c.int32_t) -> TableRange ---
+
+    // Returns whether variable is constrained.
+    iter_var_is_constrained :: proc(it: ^Iter, var_id: c.int32_t) -> bool ---
+
+    // Return the group id for the currently iterated result.
+    iter_get_group :: proc(it: ^Iter) -> c.int64_t ---
+
+    // Returns whether current iterator result has changed.
+    iter_changed :: proc(it: ^Iter) -> bool ---
+
+    // Convert iterator to string
+    iter_str :: proc(it: ^Iter) -> cstring ---
+
+    // Create a paged iterator
+    page_iter :: proc(it: ^Iter, offset: c.int32_t, limit: c.int32_t) -> Iter ---
+
+    // Progress a paged iterator
+    page_next :: proc(it: ^Iter) -> bool ---
+
+    // Create a worker iterator
+    worker_iter :: proc(it: ^Iter, index: c.int32_t, count: c.int32_t) -> Iter ---
+
+    // Progress a worker iterator
+    worker_next :: proc(it: ^Iter) -> bool ---
+
+    // Get data for field.
+    field_w_size :: proc(it: ^Iter, size: size_t, index: c.int8_t) -> rawptr ---
+
+    // Get data for field at specified row
+    field_at_w_size :: proc(it: ^Iter, size: size_t, index: c.int8_t, row: c.int32_t) -> rawptr ---
+
+    // Test whether the field is readonly
+    field_is_readonly :: proc(it: ^Iter, index: c.int8_t) -> bool ---
+
+    // Test whether the field is writeonly.
+    field_is_writeonly :: proc(it: ^Iter, index: c.int8_t) -> bool ---
+
+    // Test whether field is set
+    field_is_set :: proc(it: ^Iter, index: c.int8_t) -> bool ---
+
+    // Return id matched for field
+    field_id :: proc(it: ^Iter, index: c.int8_t) -> id_t ---
+
+    // Return index of matched table column
+    field_column :: proc(it: ^Iter, index: c.int8_t) -> c.int32_t ---
+
+    // Return field source
+    field_src :: proc(it: ^Iter, index: c.int8_t) -> Entity ---
+
+    // Return field type size
+    field_size :: proc(it: ^Iter, index: c.int8_t) -> size_t ---
+
+    // Test whether the field is matched on self.
+    field_is_self :: proc(it: ^Iter, index: c.int8_t) -> bool ---
+
+    // Tables
+
+    // Get type for table
+    table_get_type :: proc(table: ^Table) -> ^Type ---
+
+    // Get type index for component
+    table_get_type_index :: proc(world: ^World, table: ^Table, component: id_t) -> c.int32_t ---
+
+    // Get column index for component
+    table_get_column_index :: proc(world: ^World, table: ^Table, component: id_t) -> c.int32_t ---
+
+    // Return number of columns in table
+    table_column_count :: proc(table: ^Table) -> c.int32_t ---
+
+    // Convert type index to column index
+    table_type_to_column_index :: proc(table: ^Table, index: c.int32_t) -> c.int32_t ---
+
+    // Convert column index to type index.
+    table_column_to_type_index :: proc(table: ^Table, index: c.int32_t) -> c.int32_t ---
+
+    // Get column from table by column index
+    table_get_column :: proc(table: ^Table, index: c.int32_t, offset: c.int32_t) -> rawptr ---
+
+    // Get column from table by component.
+    table_get_id :: proc(world: ^World, table: ^Table, component: id_t, offset: c.int32_t) -> rawptr ---
+
+    // Get column size from table
+    table_get_column_size :: proc(table: ^Table, index: c.int32_t) -> size_t ---
+
+    // Returns the number of entities in the table
+    table_count :: proc(table: ^Table) -> c.int32_t ---
+
+    // Returns allocated size of table.
+    table_size :: proc(table: ^Table) -> c.int32_t ---
+
+    // Returns array with entity ids for table
+    table_entities :: proc(table: ^Table) -> [^]Entity ---
+
+    // Test if table has component.
+    table_has_id :: proc(world: ^World, table: ^Table, component: id_t) -> bool ---
+
+    // Return depth for table in tree for relationship rel
+    table_get_depth :: proc(world: ^World, table: ^Table, rel: Entity) -> c.int32_t ---
+
+    // Get table that has all components of current talbe plus the specified id.
+    table_add_id :: proc(world: ^World, table: ^Table, component: id_t) -> ^Table ---
+
+    // Find table from id array.
+    table_find :: proc(world: ^World, ids: [^]id_t, id_count: c.int32_t) -> ^Table ---
+
+    // Get table that has all components of current talbe minus the specified component.
+    table_remove_id :: proc(world: ^World, table: ^Table, component: id_t) -> ^Table ---
+
+    // Lock a table
+    table_lock :: proc(world: ^World, table: ^Table) ---
+
+    // Unlock a table
+    table_unlock :: proc(world: ^World, table: ^Table) ---
+
+    // Test table for flags.
+    table_has_flags :: proc(table: ^Table, flags: flags32_t) -> bool ---
+
+    // Check if table has traversable entities
+    table_has_traversable :: proc(table: ^Table) -> bool ---
+
+    // Swaps two elements inside the table. This is useful for impleenting custom talbe sorting algorithms.
+    table_swap_rows :: proc(world: ^World, table: ^Table, row_1: c.int32_t, row_2: c.int32_t) ---
+
+    // Commit (move) entity to a table
+    commit :: proc(world: ^World, entity: Entity, record: ^Record, table: ^Table, added: ^Type, removed: ^Type) -> bool ---
+
+    // Search for component in table type.
+    search :: proc(world: ^World, table: ^Table, component: id_t, component_out: ^id_t) -> c.int32_t ---
+
+    // Search for component in talbe type starting from an offset.
+    search_offset :: proc(world: ^World, table: ^Table, offset: c.int32_t, component: id_t, component_out: ^id_t) -> c.int32_t ---
+
+    // Search for component/relationship id in table type starting from an offset.
+    search_relation :: proc(world: ^World, table: ^Table, offset: c.int32_t, component: id_t, rel: Entity, flags: flags64_t, subject_out: ^Entity, component_out: ^id_t, tr_out: [^]^TableRecord) -> c.int32_t ---
+
+    // Remove all entities in a talbe. Does not deallocate table memory.
+    table_clear_entities :: proc(world: ^World, table: ^Table) ---
+
+    // Values
+
+    // Construct a value in existing storage
+    value_init :: proc(world: ^World, type: Entity, ptr: rawptr) -> c.int ---
+
+    // Construct a value in existing storage
+    value_init_w_type_info :: proc(world: ^World, ti: ^TypeInfo, ptr: rawptr) -> c.int ---
+
+    // Construct a value in new storage
+    value_new :: proc(world: ^World, type: Entity) -> rawptr ---
+
+    // Construct a value in new storage
+    value_new_w_type_info :: proc(world: ^World, ti: ^TypeInfo) -> rawptr ---
+
+    // Destruct a value
+    value_fini_w_type_info :: proc(world: ^World, ti: ^TypeInfo, ptr: rawptr) -> c.int ---
+
+    // Destruct a value
+    value_fini :: proc(world: ^World, type: Entity, ptr: rawptr) -> c.int ---
+
+    // Destruct a value, free storage
+    value_free :: proc(world: ^World, type: Entity, ptr: rawptr) -> c.int ---
+
+    // Copy value
+    value_copy_w_type_info :: proc(world: ^World, ti: ^TypeInfo, dst: rawptr, src: rawptr) -> c.int ---
+
+    // Copy Value
+    value_copy :: proc(world: ^World, type: Entity, dst: rawptr, src: rawptr) -> c.int ---
+
+    // Move value
+    value_move_w_type_info :: proc(world: ^World, ti: ^TypeInfo, dst: rawptr, src: rawptr) -> c.int ---
+
+    // Move value
+    value_move :: proc(world: ^World, type: Entity, dst: rawptr, src: rawptr) -> c.int ---
+
+    // Move construct value
+    value_move_ctor_w_type_info :: proc(world: ^World, ti: ^TypeInfo, dst: rawptr, src: rawptr) -> c.int ---
+
+    // Move construct value
+    value_move_ctor :: proc(world: ^World, type: Entity, dst: rawptr, src: rawptr) -> c.int ---
 }
 
 @(default_calling_convention = "c", link_prefix = "flecs_")
@@ -818,332 +1054,6 @@ foreign flecs
 foreign flecs
 {
 
-    // Observers
-
-
-    // Send event
-    emit :: proc(world: ^World, desc: ^EventDesc) ---
-
-    // Create observer
-    observer_init :: proc(world: ^World, desc: ^ObserverDesc) -> Entity ---
-
-    // Default run action for observer
-    observer_default_run_action :: proc(it: ^Iter) -> c.bool ---
-
-    get_observer_ctx :: proc(world: ^World, observer: Entity) -> rawptr ---
-
-    get_observer_binding_ctx :: proc(world: ^World, observer: Entity) -> rawptr ---
-
-
-    // Iterators
-
-
-    // Create iterator from poly object
-    iter_poly :: proc(
-        world: ^World,
-        poly: ^poly_t,
-        iter: ^Iter,
-        filter: ^Term,
-    ) ---
-
-    // Progress any iterator
-    iter_next :: proc(it: ^Iter) -> c.bool ---
-
-    // Cleanup iterator resources
-    iter_fini :: proc(it: ^Iter) ---
-
-    // Count number of matched entities in query
-    iter_count :: proc(it: ^Iter) -> c.int32_t ---
-
-    // Test if iterator is true
-    iter_is_true :: proc(it: ^Iter) -> c.bool ---
-
-    // Set value for iterator variable
-    iter_set_var :: proc(
-        it: ^Iter, 
-        var_id: c.int32_t, 
-        entity: Entity,
-    ) ---
-
-    // Same as iter_set_var, but for a table
-    iter_set_var_as_table :: proc(
-        it: ^Iter,
-        var_id: c.int32_t,
-        table: ^Table,
-    ) ---
-
-    // Same as iter_set_var, but for a range of entities
-    iter_set_var_as_range :: proc(
-        it: ^Iter,
-        var_id: c.int32_t,
-        range: ^TableRange,
-    ) ---
-
-    // Get value of iterator variable as entity
-    iter_get_var :: proc(it: ^Iter, var_id: c.int32_t) -> Entity ---
-
-    // Get value of iterator variable as table
-    iter_get_var_as_table :: proc(it: ^Iter, var_id: c.int32_t) -> ^Table ---
-
-    // Get value of iterator variable as table range
-    iter_get_var_as_range :: proc(it: ^Iter, var_id: c.int32_t) -> TableRange ---
-
-    // Returns whether variable is constrained
-    iter_var_is_constrained :: proc(it: ^Iter, var_id: c.int32_t) -> c.bool ---
-
-    // Create a paged iterator
-    page_iter :: proc(it: ^Iter, offset: c.int32_t, limit: c.int32_t) -> Iter ---
-
-    // Progress a paged iterator
-    page_next :: proc(it: ^Iter) -> c.bool ---
-
-    // Create a worker iterator
-    worker_iter :: proc(it: ^Iter, index: c.int32_t, count: c.int32_t) -> Iter ---
-
-    // Progress a worker iterator
-    worker_next :: proc(it: ^Iter) -> c.bool ---
-
-    // Obtain data for a query field
-    field_w_size :: proc(it: ^Iter, size: size_t, index: c.int32_t) -> rawptr ---
-
-    // Test whether the field is readonly
-    field_is_readonly :: proc(it: ^Iter, index: c.int32_t) -> c.bool ---
-
-    // Test whether the field is writeonly
-    field_is_writeonly :: proc(it: ^Iter, index: c.int32_t) -> c.bool ---
-
-    // Test whether field is set
-    field_is_set :: proc(it: ^Iter, index: c.int32_t) -> c.bool ---
-
-    // Return id matched for field
-    field_id :: proc(it: ^Iter, index: c.int32_t) -> id_t ---
-
-    // Return field source
-    field_src :: proc(it: ^Iter, index: c.int32_t) -> Entity ---
-
-    // Return field type size
-    field_size :: proc(it: ^Iter, index: c.int32_t) -> size_t ---
-
-    // Test whether the field is matched on self
-    field_is_self :: proc(it: ^Iter, index: c.int32_t) -> c.bool ---
-
-    // Convert iterator to string
-    iter_str :: proc(it: ^Iter) -> cstring ---
-
-    // Find the column index for a given id
-    iter_find_column :: proc(it: ^Iter, id: id_t) -> c.int32_t ---
-
-    // Obtain data for a column index
-    iter_column_w_size :: proc(
-        it: ^Iter,
-        size: size_t,
-        index: c.int32_t,
-    ) -> rawptr ---
-
-    // Obtain size for a column index
-    iter_column_size :: proc(it: ^Iter, index: c.int32_t) -> size_t ---
-
-
-    // Staging
-
-    // Create asynchronous stage
-    async_stage_new :: proc(world: ^World) -> ^World ---
-
-    // Free asynchronous stage
-    async_stage_free :: proc(stage: ^World) ---
-
-    // Test whether provided stage is asynchronous
-    stage_is_async :: proc(stage: ^World) -> c.bool ---
-
-    
-    // Low level functions to search for component ids in table types
-
-
-    // Search for component id in table type
-    search :: proc(
-        world: ^World,
-        table: ^Table,
-        id: id_t,
-        id_out: ^id_t,
-    ) -> c.int32_t ---
-
-    // Search for component id in table type starting from an offset
-    search_offset :: proc(
-        world: ^World,
-        table: ^Table,
-        offset: c.int32_t,
-        id: id_t,
-        id_out: ^id_t,
-    ) -> c.int32_t ---
-
-    // Search for component/relationship id in table type starting
-    // from an offset
-    search_relation :: proc(
-        world: ^World,
-        table: ^Table,
-        offset: c.int32_t,
-        id: id_t,
-        rel: Entity,
-        flags: flags32_t,
-        subject_out: ^Entity,
-        id_out: ^id_t,
-        tr_out: [^]TableRecord,
-    ) -> c.int32_t ---
-
-
-    // Public table operations
-
-
-    // Get type for table
-    table_get_type :: proc(table: ^Table) -> ^Type ---
-
-    // Get column from table
-    table_get_column :: proc(table: ^Table, index: c.int32_t) -> rawptr ---
-
-    // Get column index for id
-    table_get_index :: proc(world: ^World, table: ^Table, id: id_t) -> c.int32_t ---
-
-    // Get storage type for table
-    table_get_storage_table :: proc(table: ^Table) -> ^Table ---
-
-    // Convert index in table type to index in table storage type
-    table_type_to_storage_index :: proc(table: ^Table, index: c.int32_t) -> c.int32_t ---
-
-    // Convert index in table storage type to index in table type
-    table_storage_to_type_index :: proc(table: ^Table, index: c.int32_t) -> c.int32_t ---
-
-    // Returns the number of records in the table
-    table_count :: proc(table: ^Table) -> c.int32_t ---
-
-    // Get table that has all components of current table plus the
-    // specified id
-    table_add_id :: proc(world: ^World, table: ^Table, id: id_t) -> ^Table ---
-
-    // Get table that has all components of current table minus the
-    // specified id
-    table_remove_id :: proc(world: ^World, table: ^Table, id: id_t) -> ^Table ---
-
-    // Lock or unlock table
-    table_lock :: proc(world: ^World, table: ^Table) ---
-
-    // Unlock a table
-    table_unlock :: proc(world: ^World, table: ^Table) ---
-
-    // Returns whether table is a module or contains module contents
-    table_has_module :: proc(table: ^Table) -> c.bool ---
-
-    // Swaps two elements inside the table
-    table_swap_rows :: proc(
-        world: ^World,
-        table: ^Table,
-        row_1: c.int32_t,
-        row_2: c.int32_t,
-    ) ---
-
-    // Commit (move) entity to a table
-    commit :: proc(
-        world: ^World,
-        entity: Entity,
-        record: ^Record,
-        table: ^Table,
-        added: ^Type,
-        removed: ^Type,
-    ) -> c.bool ---
-
-
-    // Get component pointer from column/record
-    record_get_column :: proc(r: ^Record, column: c.int32_t, c_size: size_t) -> rawptr ---
-
-
-    // Values API for dynamic values
-
-
-    // Construct a value in existing storage
-    value_init :: proc(world: ^World, type: Entity, ptr: rawptr) -> c.int ---
-
-    // Construct a value in existing storage with type info
-    value_init_w_type_info :: proc(
-        world: ^World,
-        ti: ^TypeInfo,
-        ptr: rawptr,
-    ) -> c.int ---
-
-    // Construct a value in new storage
-    value_new :: proc(
-        world: ^World,
-        type: Entity,
-    ) -> rawptr ---
-
-    // Destruct a value
-    value_fini_w_type_info :: proc(
-        world: ^World,
-        ti: ^TypeInfo,
-        ptr: rawptr,
-    ) -> c.int ---
-
-    // Destruct a value
-    value_fini :: proc(
-        world: ^World,
-        type: Entity,
-        ptr: rawptr,
-    ) -> c.int ---
-
-    // Destruct a value, free storage
-    value_free :: proc(
-        world: ^World,
-        type: Entity,
-        ptr: rawptr,
-    ) -> c.int ---
-
-    // Copy value
-    value_copy_w_type_info :: proc(
-        world: ^World,
-        ti: ^TypeInfo,
-        dst: rawptr,
-        src: rawptr,
-    ) -> c.int ---
-
-    // Copy value
-    value_copy :: proc(
-        world: ^World,
-        type: Entity,
-        dst: rawptr,
-        src: rawptr,
-    ) -> c.int ---
-
-    // Move value
-    value_move_w_type_info :: proc(
-        world: ^World,
-        ti: ^TypeInfo,
-        dst: rawptr,
-        src: rawptr,
-    ) -> c.int ---
-
-    // Move value
-    value_move :: proc(
-        world: ^World,
-        type: Entity,
-        dst: rawptr,
-        src: rawptr,
-    ) -> c.int ---
-
-    // Move construct value
-    value_move_ctor_w_type_info :: proc(
-        world: ^World,
-        ti: ^TypeInfo,
-        dst: rawptr,
-        src: rawptr,
-    ) -> c.int ---
-
-    // Move construct value
-    value_move_ctor :: proc(
-        world: ^World,
-        type: Entity,
-        dst: rawptr,
-        src: rawptr,
-    ) -> c.int ---
-
-    
     // Log
 
 

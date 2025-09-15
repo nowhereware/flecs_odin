@@ -1,6 +1,5 @@
 package flecs
 
-//5669
 import "core:c"
 
 ID_FLAG_BIT :: c.ulonglong(1) << 63
