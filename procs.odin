@@ -571,6 +571,61 @@ foreign flecs {
 
     // Get current lookup path.
     get_lookup_path :: proc(world: ^World) -> [^]Entity ---
+
+    // Components
+
+    // Find or create a component
+    component_init :: proc(world: ^World, desc: ^ComponentDesc) -> Entity ---
+
+    // Get the type info for a component
+    get_type_info :: proc(world: ^World, component: id_t) -> ^TypeInfo ---
+
+    // Register hooks for component.
+    set_hooks_id :: proc(world: ^World, component: Entity, hooks: ^TypeHooks) ---
+
+    // Get hooks for component.
+    get_hooks_id :: proc(world: ^World, component: Entity) -> ^TypeHooks ---
+
+    // Ids
+
+    // Returns whether specified component is a tag.
+    id_is_tag :: proc(world: ^World, component: id_t) -> bool ---
+
+    // Returns whether specified component is in use.
+    id_in_use :: proc(world: ^World, component: id_t) -> bool ---
+
+    // Gets the type for a component
+    get_typeid :: proc(world: ^World, component: id_t) -> Entity ---
+
+    // Utility to match a component with a pattern.
+    id_match :: proc(component: id_t, pattern: id_t) -> bool ---
+
+    // Utility to check if component is a pair
+    id_is_pair :: proc(component: id_t) -> bool ---
+
+    // Utility to check if component is a wildcard
+    id_is_wildcard :: proc(component: id_t) -> bool ---
+
+    // Utility to check if component is an any wildcard
+    id_is_any :: proc(component: id_t) -> bool ---
+
+    // Utility to check if id is valid
+    id_is_valid :: proc(world: ^World, component: id_t) -> bool ---
+
+    // Get flags associated with id
+    id_get_flags :: proc(world: ^World, component: id_t) -> flags32_t ---
+
+    // Convert component flag to string
+    id_flag_str :: proc(component_flags: id_t) -> cstring ---
+
+    // Convert component id to string.
+    id_str :: proc(world: ^World, component: id_t) -> cstring ---
+
+    // Write component string to buffer.
+    id_str_buf :: proc(world: ^World, component: id_t, buf: ^StrBuf) ---
+
+    // Convert string to a component
+    id_from_str :: proc(world: ^World, expr: cstring) -> id_t ---
 }
 
 @(default_calling_convention = "c", link_prefix = "flecs_")
