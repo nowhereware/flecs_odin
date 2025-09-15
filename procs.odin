@@ -362,6 +362,215 @@ foreign flecs {
     // End exclusive access
     exclusive_access_end :: proc(world: ^World, lock_world: bool) ---
 
+
+    // Entities api
+
+    // Create a new entity id
+    new :: proc(world: ^World) -> Entity ---
+
+    // Create a new low id
+    new_low_id :: proc(world: ^World) -> Entity ---
+
+    // Create new entity with (component) id
+    new_w_id :: proc(world: ^World, component: id_t) -> Entity ---
+
+    // Create new entity in table
+    new_w_table :: proc(world: ^World, table: ^Table) -> Entity ---
+
+    // Find or create an entity
+    entity_init :: proc(world: ^World, desc: ^EntityDesc) -> Entity ---
+
+    // Bulk create/populate new entities
+    bulk_init :: proc(world: ^World, desc: ^BulkDesc) -> [^]Entity ---
+
+    // Create N new entities
+    bulk_new_w_id :: proc(world: ^World, component: id_t, count: c.int32_t) -> ^Entity ---
+
+    // Clone an entity
+    clone :: proc(world: ^World, dst: Entity, src: Entity, copy_value: bool) -> Entity ---
+
+    // Delete an entity
+    delete :: proc(world: ^World, entity: Entity) ---
+
+    // Delete all entities with the specified component
+    delete_with :: proc(world: ^World, component: id_t) ---
+
+    // Set child order for parent with OrderedChildren
+    set_child_order :: proc(world: ^World, parent: Entity, children: [^]Entity, child_count: c.int32_t) ---
+
+    // Get ordered children.
+    get_ordered_children :: proc(world: ^World, parent: Entity) -> Entities ---
+
+    // Add a (component) id to an entity.
+    add_id :: proc(world: ^World, entity: Entity, component: id_t) ---
+
+    // Remove a component from an entity
+    remove_id :: proc(world: ^World, entity: Entity, component: id_t) ---
+
+    // Add auto override for component
+    auto_override_id :: proc(world: ^World, entity: Entity, component: id_t) ---
+
+    // Clear all components.
+    clear :: proc(world: ^World, entity: Entity) ---
+
+    // Remove all instances of the specified component.
+    remove_all :: proc(world: ^World, component: id_t) ---
+
+    // Create new entities with specified component
+    set_with :: proc(world: ^World, component: id_t) -> Entity ---
+
+    // Get component set with ecs_set_with().
+    get_with :: proc(world: ^World) -> id_t ---
+
+    // Enable or disable entity.
+    enable :: proc(world: ^World, entity: Entity, enabled: bool) ---
+
+    // Enable or disable component
+    enable_id :: proc(world: ^World, entity: Entity, component: id_t, enable: bool) ---
+
+    // Test if component is enabled
+    is_enabled_id :: proc(world: ^World, entity: Entity, component: id_t) -> bool ---
+
+    // Get an immutable to a component.
+    get_id :: proc(world: ^World, entity: Entity, component: id_t) -> rawptr ---
+
+    // Get a mutable pointer to a component.
+    get_mut_id :: proc(world: ^World, entity: Entity, component: id_t) -> rawptr ---
+
+    // Ensure entity has component, return pointer.
+    ensure_id :: proc(world: ^World, entity: Entity, component: id_t, size: size_t) -> rawptr ---
+
+    // Create a component ref.
+    ref_init_id :: proc(world: ^World, entity: Entity, component: id_t) -> Ref ---
+
+    // Get component from ref.
+    ref_get_id :: proc(world: ^World, ref: ^Ref, component: id_t) -> rawptr ---
+
+    // Update ref.
+    ref_update :: proc(world: ^World, ref: ^Ref) ---
+
+    // Emplace a component.
+    emplace_id :: proc(world: ^World, entity: Entity, component: id_t, size: size_t, is_new: ^bool) -> rawptr ---
+
+    // Signal that a component has been modified
+    modified_id :: proc(world: ^World, entity: Entity, component: id_t) ---
+
+    // Set the value of a component
+    set_id :: proc(world: ^World, entity: Entity, component: id_t, size: size_t, ptr: rawptr) ---
+
+    // Test whether an entity is valid
+    is_valid :: proc(world: ^World, e: Entity) -> bool ---
+
+    // Test whether an entity is alive
+    is_alive :: proc(world: ^World, e: Entity) -> bool ---
+
+    // Remove generation from entity id.
+    strip_generation :: proc(e: Entity) -> id_t ---
+
+    // Get alive identifier
+    get_alive :: proc(world: ^World, e: Entity) -> Entity ---
+
+    // Ensure id is alive
+    make_alive :: proc(world: ^World, entity: Entity) ---
+
+    // Same as ecs_make_alive(), but for components
+    make_alive_id :: proc(world: ^World, component: id_t) ---
+
+    // Test whether an entity exists.
+    exists :: proc(world: ^World, entity: Entity) -> bool ---
+
+    // Override the generation of an entity.
+    set_version :: proc(world: ^World, entity: Entity) ---
+
+    // Get the type of an entity
+    get_type :: proc(world: ^World, entity: Entity) -> ^Type ---
+
+    // Get the table of an entity.
+    get_table :: proc(world: ^World, entity: Entity) -> ^Table ---
+
+    // Convert type to string.
+    type_str :: proc(world: ^World, type: ^Type) -> cstring ---
+
+    // Convert table to string
+    table_str :: proc(world: ^World, table: ^Table) -> cstring ---
+
+    // Convert entity to string.
+    entity_str :: proc(world: ^World, entity: Entity) -> cstring ---
+
+    // Test if an entity has a component
+    has_id :: proc(world: ^World, entity: Entity, component: id_t) -> bool ---
+
+    // Test if an entity owns a component.
+    owns_id :: proc(world: ^World, entity: Entity, component: id_t) -> bool ---
+
+    // Get the target of a relationship.
+    get_target :: proc(world: ^World, entity: Entity, rel: Entity, index: c.int32_t) -> Entity ---
+
+    // Get parent (target of `ChildOf` relationship) for entity.
+    get_parent :: proc(world: ^World, entity: Entity) -> Entity ---
+
+    // Get the target of a relationship for a given component.
+    get_target_for_id :: proc(world: ^World, entity: Entity, rel: Entity, component: id_t) -> Entity ---
+
+    // Return depth for entity in tree for the specified relationship.
+    get_depth :: proc(world: ^World, entity: Entity, rel: Entity) -> c.int32_t ---
+
+    // Count entities that have the specified id.
+    count_id :: proc(world: ^World, entity: id_t) -> c.int32_t ---
+
+    // Get the name of an entity
+    get_name :: proc(world: ^World, entity: Entity) -> cstring ---
+
+    // Get the symbol of an entity
+    get_symbol :: proc(world: ^World, entity: Entity) -> cstring ---
+
+    // Set the name of an entity.
+    set_name :: proc(world: ^World, entity: Entity, name: cstring) -> Entity ---
+
+    // Set the symbol of an entity.
+    set_symbol :: proc(world: ^World, entity: Entity, symbol: cstring) -> Entity ---
+
+    // Set alias for entity.
+    set_alias :: proc(world: ^World, entity: Entity, alias: cstring) ---
+
+    // Lookup an entity by it's path.
+    lookup :: proc(world: ^World, path: cstring) -> Entity ---
+
+    // Lookup a child entity by name.
+    lookup_child :: proc(world: ^World, parent: Entity, name: cstring) -> Entity ---
+
+    // Lookup an entity from a path
+    lookup_path_w_sep :: proc(world: ^World, parent: Entity, path: cstring, sep: cstring, prefix: cstring, recursive: bool) -> Entity ---
+
+    // Lookup an entity by its symbol name.
+    lookup_symbol :: proc(world: ^World, symbol: cstring, lookup_as_path: bool, recursive: bool) -> Entity ---
+
+    // Get a path identifier for an entity.
+    get_path_w_sep :: proc(world: ^World, parent: Entity, child: Entity, sep: cstring, prefix: cstring) -> cstring ---
+
+    // Write path identifier to buffer.
+    get_path_w_sep_buf :: proc(world: ^World, parent: Entity, child: Entity, sep: cstring, prefix: cstring, buf: ^StrBuf, escape: bool) ---
+
+    // Find or create entity from path.
+    new_from_path_w_sep :: proc(world: ^World, parent: Entity, path: cstring, sep: cstring, prefix: cstring) -> Entity ---
+
+    // Add specified path to entity.
+    add_path_w_sep :: proc(world: ^World, entity: Entity, parent: Entity, path: cstring, sep: cstring, prefix: cstring) -> Entity ---
+
+    // Set the current scope.
+    set_scope :: proc(world: ^World, scope: Entity) -> Entity ---
+
+    // Get the current scope
+    get_scope :: proc(world: ^World) -> Entity ---
+
+    // Set a name prefix for newly created entities.
+    set_name_prefix :: proc(world: ^World, prefix: cstring) -> cstring ---
+
+    // Set the search path for lookup operations.
+    set_lookup_path :: proc(world: ^World, lookup_path: [^]Entity) -> [^]Entity ---
+
+    // Get current lookup path.
+    get_lookup_path :: proc(world: ^World) -> [^]Entity ---
 }
 
 @(default_calling_convention = "c", link_prefix = "flecs_")
@@ -463,135 +672,10 @@ foreign flecs
     get_hooks_id :: proc(world: ^World, id: Entity) -> ^TypeHooks ---
 
 
-    // Create new entity id
-    new_id :: proc(world: ^World) -> Entity ---
-
-    // Create new low id
-    new_low_id :: proc(world: ^World) -> Entity ---
-
-    // Create new entity
-    new_w_id :: proc(world: ^World, id: id_t) -> Entity ---
-
-    // Find or create an entity
-    entity_init :: proc(world: ^World, desc: ^EntityDesc) -> Entity ---
-
-    // Bulk create/populate new entities
-    bulk_init :: proc(world: ^World, desc: ^BulkDesc) -> [^]Entity ---
-
     // Find or create a component
     component_init :: proc(world: ^World, desc: ^ComponentDesc) -> Entity ---
 
-    // Create N new entities
-    bulk_new_w_id :: proc(world: ^World, id: id_t, count: c.int32_t) -> ^Entity ---
 
-    // Clone an entity
-    clone :: proc(world: ^World, dst: Entity, src: Entity, copy_value: c.bool) -> Entity ---
-
-    
-    // Adding and Removing
-
-
-    // Add a (component) id to an entity
-    add_id :: proc(world: ^World, entity: Entity, id: id_t) ---
-
-    // Remove a (component) id from an entity
-    remove_id :: proc(world: ^World, entity: Entity, id: id_t) ---
-
-    // Add override for (component) id
-    override_id :: proc(world: ^World, entity: Entity, id: id_t) ---
-
-
-    // Enabling and Disabling components
-
-
-    // Enable or disable component
-    enable_id :: proc(world: ^World, entity: Entity, id: id_t, enable: c.bool) ---
-
-    // Test if component is enabled
-    is_enabled_id :: proc(world: ^World, entity: Entity, id: id_t) -> c.bool ---
-
-
-    // Pairs
-
-
-
-    // Deleting Entities and components
-
-
-    // Clear all components
-    clear :: proc(world: ^World, entity: Entity) ---
-
-    // Delete an entity
-    delete :: proc(world: ^World, entity: Entity) ---
-
-    // Delete all entities with the specified id
-    delete_with :: proc(world: ^World, id: id_t) ---
-
-    // Remove all instances of the specific id
-    remove_all :: proc(world: ^World, id: id_t) ---
-
-
-    // Getting components
-
-
-    // Get an immutable pointer to a component
-    get_id :: proc(world: ^World, entity: Entity, id: id_t) -> rawptr ---
-
-    // Create a component ref
-    ref_init_id :: proc(world: ^World, entity: Entity, id: id_t) -> Ref ---
-
-    // Get component from ref
-    ref_get_id :: proc(world: ^World, ref: ^Ref, id: id_t) -> rawptr ---
-
-    // Update ref
-    ref_update :: proc(world: ^World, ref: ^Ref) ---
-
-
-    // Setting Components
-
-
-    // Get a mutable pointer to a component
-    get_mut_id :: proc(world: ^World, entity: Entity, id: id_t) -> rawptr ---
-
-    // Emplace a component
-    emplace_id :: proc(world: ^World, entity: Entity, id: id_t) -> rawptr ---
-
-    // Signal that a component has been modified
-    modified_id :: proc(world: ^World, entity: Entity, id: id_t) ---
-
-    // Set the value of a component
-    set_id :: proc(world: ^World, entity: Entity, id: id_t, size: size_t, ptr: rawptr) -> Entity ---
-
-
-    // Entity Metadata
-
-
-    // Test whether an entity is valid
-    is_valid :: proc(world: ^World, e: Entity) -> c.bool ---
-
-    // Test whether an entity is alive
-    is_alive :: proc(world: ^World, e: Entity) -> c.bool ---
-
-    // Remove generation from entity id
-    strip_generation :: proc(e: Entity) -> id_t ---
-
-    // Get alive identifier
-    get_alive :: proc(world: ^World, e: Entity) -> Entity ---
-
-    // Ensure id is alive
-    ensure :: proc(world: ^World, entity: Entity) ---
-
-    // Ensure component id can be used
-    ensure_id :: proc(world: ^World, id: id_t) ---
-
-    // Test whether an entity exists
-    exists :: proc(world: ^World, entity: Entity) -> c.bool ---
-
-    // Get the type of an entity
-    get_type :: proc(world: ^World, entity: Entity) -> ^Type ---
-
-    // Get the table of an entity
-    get_table :: proc(world: ^World, entity: Entity) -> ^Table ---
 
     // Get the storage table of an entity
     get_storage_table :: proc(world: ^World, entity: Entity) -> ^Table ---
@@ -608,21 +692,6 @@ foreign flecs
     // Returns whether specified id is in use
     id_in_use :: proc(world: ^World, id: id_t) -> c.bool ---
 
-    // Get the name of an entity
-    get_name :: proc(world: ^World, entity: Entity) -> cstring ---
-
-    // Get the symbol of an entity
-    get_symbol :: proc(world: ^World, entity: Entity) -> cstring ---
-
-    // Set the name of an entity
-    set_name :: proc(world: ^World, entity: Entity, name: cstring) -> Entity ---
-
-    // Set the symbol of an entity
-    set_symbol :: proc(world: ^World, entity: Entity, symbol: cstring) -> Entity ---
-
-    // Set alias for entity
-    set_alias :: proc(world: ^World, entity: Entity, alias: cstring) ---
-
     // Convert id flag to string
     id_flag_str :: proc(id_flags: id_t) -> cstring ---
 
@@ -631,131 +700,6 @@ foreign flecs
 
     // Write id string to buffer
     id_str_buf :: proc(world: ^World, id: id_t, buf: ^StrBuf) ---
-
-    // Convert type to string
-    type_str :: proc(world: ^World, type: ^Type) -> cstring ---
-
-    // Convert table to string
-    table_str :: proc(world: ^World, table: ^Table) -> cstring ---
-
-    // Convert entity to string
-    entity_str :: proc(world: ^World, entity: Entity) -> cstring ---
-
-    // Test if an entity has an entity
-    has_id :: proc(world: ^World, entity: Entity, id: id_t) -> c.bool ---
-
-    // Get the target of a relationship
-    get_target :: proc(
-        world: ^World, 
-        entity: Entity, 
-        rel: Entity, 
-        index: c.int32_t,
-    ) -> Entity ---
-
-    // Get the target of a relationship for a given id
-    get_target_for_id :: proc(
-        world: ^World, 
-        entity: Entity, 
-        rel: Entity, 
-        id: id_t,
-    ) -> Entity ---
-
-    // Enable or disable an entity
-    enable :: proc(world: ^World, entity: Entity, enabled: c.bool) ---
-
-    // Count entities that have the specified id
-    count_id :: proc(world: ^World, entity: id_t) -> c.int32_t ---
-
-
-    // Lookups
-
-
-    // Lookup an entity by name
-    lookup :: proc(world: ^World, name: cstring) -> Entity ---
-
-    // Lookup a child entity by name
-    lookup_child :: proc(world: ^World, parent: Entity, name: cstring) -> Entity ---
-
-    // Lookup an entity from a path
-    lookup_path_w_sep :: proc(
-        world: ^World,
-        parent: Entity,
-        path: cstring,
-        sep: cstring,
-        prefix: cstring,
-        recursive: c.bool,
-    ) -> Entity ---
-
-    // Lookup an entity by its symbol name
-    lookup_symbol :: proc(world: ^World, symbol: cstring, lookup_as_path: c.bool) -> Entity ---
-
-
-    // Paths
-
-
-    // Get a path identifier for an entity
-    get_path_w_sep :: proc(
-        world: ^World,
-        parent: Entity,
-        child: Entity,
-        sep: cstring,
-        prefix: cstring,
-    ) -> cstring ---
-
-    // Write path identifier to buffer
-    get_path_w_sep_buf :: proc(
-        world: ^World,
-        parent: Entity,
-        child: Entity,
-        sep: cstring,
-        prefix: cstring,
-        buf: ^StrBuf,
-    ) ---
-
-    // Find or create entity from path
-    new_from_path_w_sep :: proc(
-        world: ^World,
-        parent: Entity,
-        path: cstring,
-        sep: cstring,
-        prefix: cstring,
-    ) -> Entity ---
-
-    // Add specified path to entity
-    add_path_w_sep :: proc(
-        world: ^World,
-        entity: Entity,
-        parent: Entity,
-        path: cstring,
-        sep: cstring,
-        prefix: cstring,
-    ) -> Entity ---
-
-
-    // Scopes
-
-
-    // Set the current scope
-    set_scope :: proc(world: ^World, scope: Entity) -> Entity ---
-
-    // Get the current scope
-    get_scope :: proc(world: ^World) -> Entity ---
-
-    // Set current with id
-    set_with :: proc(world: ^World, id: id_t) -> Entity ---
-
-    // Get current with id
-    get_with :: proc(world: ^World) -> id_t ---
-
-    // Set a name prefix for newly created entities
-    set_name_prefix :: proc(world: ^World, prefix: cstring) -> cstring ---
-
-    // Set search path for lookup operations
-    set_lookup_path :: proc(world: ^World, lookup_path: [^]Entity) -> [^]Entity ---
-
-    // Get current lookup path
-    get_lookup_path :: proc(world: ^World) -> [^]Entity ---
-
 
     // Terms
 

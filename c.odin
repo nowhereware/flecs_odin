@@ -71,10 +71,10 @@ ObserverDefine :: proc(world: ^World, $T: typeid, kind: Entity, args: ..string)
 // New
 
 
-new :: proc(world: ^World, $T: typeid) -> Entity
-{
-    return new_w_id(world, id(world, T))
-}
+// new :: proc(world: ^World, $T: typeid) -> Entity
+// {
+//     return new_w_id(world, id(world, T))
+// }
 
 new_w_pair :: proc(world: ^World, first: Entity, second: Entity) -> Entity
 {
@@ -344,10 +344,10 @@ has_pair :: proc(world: ^World, entity: Entity, first: Entity, second: Entity) -
     return has_id(world, entity, pair(first, second))
 }
 
-owns_id :: proc(world: ^World, entity: Entity, id: id_t) -> c.bool
-{
-    return (search(world, get_table(world, entity), id, nil) != -1)
-}
+// owns_id :: proc(world: ^World, entity: Entity, id: id_t) -> c.bool
+// {
+//     return (search(world, get_table(world, entity), id, nil) != -1)
+// }
 
 owns_pair :: proc(world: ^World, entity: Entity, first: Entity, second: Entity) -> c.bool
 {
