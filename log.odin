@@ -1,5 +1,6 @@
 package flecs
 
+import "core:strings"
 import "core:c"
 import "core:fmt"
 
@@ -57,3 +58,52 @@ WHITE : cstring : "\033[1;37m"
 GREY : cstring : "\033[0;37m"
 NORMAL : cstring : "\033[0;49m"
 BOLD : cstring : "\033[1;49m"
+
+print :: proc(level: int, fmt: string, args: ..any, loc := #caller_location) {
+	file := strings.clone_to_cstring(loc.file_path)
+	c_fmt := strings.clone_to_cstring(fmt)
+	print_(c.int32_t(level), file, c.int32_t(loc.line), c_fmt, args)
+}
+
+printv :: proc(level: int, fmt: string, args: ..any, loc := #caller_location) {
+	file := strings.clone_to_cstring(loc.file_path)
+	c_fmt := strings.clone_to_cstring(fmt)
+	printv_(c.int(level), file, c.int32_t(loc.line), c_fmt, args)
+}
+
+log :: proc(level: int, fmt: string, args: ..any, loc := #caller_location) {
+	file := strings.clone_to_cstring(loc.file_path)
+	c_fmt := strings.clone_to_cstring(fmt)
+	log_(c.int32_t(level), file, c.int32_t(loc.line), c_fmt, args)
+}
+
+logv :: proc(level: int, fmt: string, args: ..any, loc := #caller_location) {
+	file := strings.clone_to_cstring(loc.file_path)
+	c_fmt := strings.clone_to_cstring(fmt)
+	logv_(c.int(level), file, c.int32_t(loc.line), c_fmt, args)
+}
+
+trace :: proc(fmt: string, args: ..any, loc := #caller_location) {
+	file := strings.clone_to_cstring(loc.file_path)
+	c_fmt := strings.clone_to_cstring(fmt)
+	log_(0, file, c.int32_t(loc.line), c_fmt, args)
+}
+
+warn :: proc(fmt: string, args: ..any, loc := #caller_location) {
+	file := strings.clone_to_cstring(loc.file_path)
+	c_fmt := strings.clone_to_cstring(fmt)
+	log_(-2, file, c.int32_t(loc.line), c_fmt, args)
+}
+
+err :: proc(fmt: string, args: ..any, loc := #caller_location) {
+	file := strings.clone_to_cstring(loc.file_path)
+	c_fmt := strings.clone_to_cstring(fmt)
+	log_(-3, file, c.int32_t(loc.line), c_fmt, args)
+}
+
+fatal :: proc(fmt: string, args: ..any, loc := #caller_location) {
+	file := strings.clone_to_cstring(loc.file_path)
+	c_fmt := strings.clone_to_cstring(fmt)
+	log_(-4, file, c.int32_t(loc.line), c_fmt, args)
+}
+

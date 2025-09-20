@@ -1091,13 +1091,8 @@ foreign flecs
     log_start_capture :: proc(capture_try: bool) ---
 
     log_stop_capture :: proc() -> cstring ---
-}
 
-@(default_calling_convention = "c", link_prefix = "ecs_")
-foreign flecs
-{
     // App addon
-
 
     // Run application
     app_run :: proc(world: ^World, desc: ^AppDesc) -> c.int ---
@@ -1110,9 +1105,7 @@ foreign flecs
 
     app_set_frame_action :: proc(callback: app_frame_action_t) -> c.int ---
 
-
     // Timer addon
-
 
     // Set timer timeout
     set_timeout :: proc(world: ^World, tick_source: Entity, timeout: ftime_t) -> Entity ---
@@ -1132,12 +1125,17 @@ foreign flecs
     // Stop timer
     stop_timer :: proc(world: ^World, tick_source: Entity) ---
 
+    // Reset time value of timer to 0
+    reset_timer :: proc(world: ^World, tick_source: Entity) ---
+
+    // Enable randomizing initial time values of timers
+    randomize_timers :: proc(world: ^World) ---
+
     // Set rate filter
     set_rate :: proc(world: ^World, tick_source: Entity, rate: c.int32_t, source: Entity) -> Entity ---
 
     // Assign tick source to system
     set_tick_source :: proc(world: ^World, system: Entity, tick_source: Entity) ---
-
 
     // Pipeline addon
 
@@ -1166,12 +1164,20 @@ foreign flecs
     // Set number of worker threads
     set_threads :: proc(world: ^World, threads: c.int32_t) ---
 
+    // Set number of worker task threads
+    set_task_threads :: proc(world: ^World, task_threads: c.int32_t) ---
+
+    // Returns true if task thread use have been requested
+    using_task_threads :: proc(world: ^World) -> c.bool ---
 
     // System addon
 
 
     // Create a system
     system_init :: proc(world: ^World, desc: ^SystemDesc) -> Entity ---
+
+    // Get system object
+    system_get :: proc(world: ^World, system: Entity) -> ^System ---
 
     // Run a specific system manually
     run :: proc(world: ^World, system: Entity, delta_time: ftime_t, param: rawptr) -> Entity ---
@@ -1186,31 +1192,11 @@ foreign flecs
         param: rawptr,
     ) -> Entity ---
 
-    // Run system with offset/limit and type filter
-    run_w_filter :: proc(
-        world: ^World,
-        system: Entity,
-        delta_time: ftime_t,
-        offset: c.int32_t,
-        limit: c.int32_t,
-        param: rawptr,
-    ) -> Entity ---
+}
 
-    // Get the query object for a system
-    system_get_query :: proc(
-        world: ^World,
-        system: Entity,
-    ) -> ^Query ---
-
-    // Get system context
-    get_system_ctx :: proc(
-        world: ^World,
-        system: Entity,
-    ) -> rawptr ---
-
-    // Get system binding context
-    get_system_binding_ctx :: proc(
-        world: ^World,
-        system: Entity,
-    ) -> rawptr ---
+@(default_calling_convention = "c", link_prefix = "Flecs")
+foreign flecs {
+	TimerImport :: proc(world: ^World) ---
+	PipelineImport :: proc(world: ^World) ---
+	SystemImport :: proc(world: ^World) ---
 }

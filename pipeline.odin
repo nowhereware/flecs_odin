@@ -40,7 +40,7 @@ PipelineDesc :: struct
     query: QueryDesc,
 }
 
-PipelineDefine :: proc(world: ^World, $T: typeid, args: ..string)
+PipelineDefine :: proc(world: ^World, $T: typeid, args: ..string) -> Entity
 {
     pdesc: PipelineDesc
     edesc: EntityDesc
@@ -54,6 +54,9 @@ PipelineDefine :: proc(world: ^World, $T: typeid, args: ..string)
     pdesc.query.filter.expr = strings.clone_to_cstring(strings.concatenate(args))
 
     id := pipeline_init(world, &pdesc)
+
+    // Return id if user wants to store it?
+    return id
 }
 
 pipeline :: proc(world: ^World, desc: PipelineDesc) -> Entity

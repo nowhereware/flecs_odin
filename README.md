@@ -22,3 +22,15 @@ Bindings should work on all platforms, just place the dynamic library for flecs 
 
 ## Not Implemented:
 - Deprecated Addon
+- HTTP addon
+- REST API Addon
+- Stats addon
+- Metrics addon
+- Alerts addon
+- Json addon
+- Units addon
+- script_math addon
+- Flecs script addon
+- Doc addon
+- Meta addon
+- Module addon

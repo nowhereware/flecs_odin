@@ -6,6 +6,8 @@ import "core:strings"
 import "core:fmt"
 import "base:runtime"
 
+
+// 10125
 @(private)
 _GetTypeName :: proc($T: typeid) -> string
 {
