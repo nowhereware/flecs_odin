@@ -36,8 +36,6 @@ Tag :: proc(world: ^World, $T: typeid)
 
 Component :: proc(world: ^World, $T: typeid)
 {
-    ti := type_info_of(T)
-
     component_name_c := strings.clone_to_cstring(_GetTypeName(T))
     struct_size := size_of(T)
 
