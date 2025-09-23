@@ -3,9 +3,11 @@ package flecs
 import "core:c"
 import "core:reflect"
 import "core:strings"
-import "core:runtime"
 import "core:fmt"
+import "base:runtime"
 
+
+// 10125
 @(private)
 _GetTypeName :: proc($T: typeid) -> string
 {
@@ -34,8 +36,6 @@ Tag :: proc(world: ^World, $T: typeid)
 
 Component :: proc(world: ^World, $T: typeid)
 {
-    ti := type_info_of(T)
-
     component_name_c := strings.clone_to_cstring(_GetTypeName(T))
     struct_size := size_of(T)
 
@@ -71,10 +71,10 @@ ObserverDefine :: proc(world: ^World, $T: typeid, kind: Entity, args: ..string)
 // New
 
 
-new :: proc(world: ^World, $T: typeid) -> Entity
-{
-    return new_w_id(world, id(world, T))
-}
+// new :: proc(world: ^World, $T: typeid) -> Entity
+// {
+//     return new_w_id(world, id(world, T))
+// }
 
 new_w_pair :: proc(world: ^World, first: Entity, second: Entity) -> Entity
 {
@@ -344,10 +344,10 @@ has_pair :: proc(world: ^World, entity: Entity, first: Entity, second: Entity) -
     return has_id(world, entity, pair(first, second))
 }
 
-owns_id :: proc(world: ^World, entity: Entity, id: id_t) -> c.bool
-{
-    return (search(world, get_table(world, entity), id, nil) != -1)
-}
+// owns_id :: proc(world: ^World, entity: Entity, id: id_t) -> c.bool
+// {
+//     return (search(world, get_table(world, entity), id, nil) != -1)
+// }
 
 owns_pair :: proc(world: ^World, entity: Entity, first: Entity, second: Entity) -> c.bool
 {
@@ -505,17 +505,17 @@ value_new_t :: proc(world: ^World, $T: typeid) -> rawptr
 query_new :: proc(world: ^World, q_expr: cstring) -> ^Query
 {
     q: QueryDesc
-    q.filter.expr = q_expr
+    // q.filter.expr = q_expr
 
     return query_init(world, &q)
 }
 
-rule_new :: proc(world: ^World, q_expr: cstring) -> ^Rule
-{
-    f: FilterDesc
-    f.expr = q_expr
+// rule_new :: proc(world: ^World, q_expr: cstring) -> ^Rule
+// {
+//     f: FilterDesc
+//     f.expr = q_expr
 
-    // TODO: FIX
-    return {}
-    //return rule_init(world, &f)
-}
+//     // TODO: FIX
+//     return {}
+//     //return rule_init(world, &f)
+// }

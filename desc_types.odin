@@ -6,13 +6,15 @@ EntityDesc :: struct
 {
     _canary: c.int32_t,
     id: Entity,
+    parent: Entity,
     name: cstring,
     sep: cstring,
     root_sep: cstring,
     symbol: cstring,
 
     use_low_id: bool,
-    add: [ID_CACHE_SIZE]id_t,
+    add: [^]id_t,
+    set: [^]Value,
     add_expr: cstring,
 }
 
@@ -36,54 +38,48 @@ ComponentDesc :: struct
     type: TypeInfo,
 }
 
-FilterDesc :: struct
-{
-    _canary: c.int32_t,
-    terms: [TERM_DESC_CACHE_SIZE]Term,
-    terms_buffer: [^]Term,
-    terms_buffer_count: c.int32_t,
-
-    storage: ^Filter,
-
-    instanced: bool,
-    flags: flags32_t,
-    expr: cstring,
-    name: cstring,
-}
-
 QueryDesc :: struct
 {
     _canary: c.int32_t,
-    filter: FilterDesc,
-    order_by_component: Entity,
-    order_by: order_by_action_t,
-    sort_table: sort_table_action_t,
-    group_by_id: id_t,
-    group_by: group_by_action_t,
+    terms: [FLECS_TERM_COUNT_MAX]Term,
+    expr: cstring,
+    cache_kind: QueryCacheKind,
+    flags: flags32_t,
+    order_by_callback: order_by_action_t,
+    order_by_table_callback: sort_table_action_t,
+    order_by: Entity,
+    group_by: id_t,
+    group_by_callback: group_by_action_t,
     on_group_create: group_create_action_t,
     on_group_delete: group_delete_action_t,
     group_by_ctx: rawptr,
     group_by_ctx_free: ctx_free_t,
-    parent: ^Query,
-    entity: Entity,
+    ctx: rawptr,
+    binding_ctx: rawptr,
+    ctx_free: ctx_free_t,
+    binding_ctx_free: ctx_free_t,
+    entity: Entity
 }
 
 ObserverDesc :: struct
 {
     _canary: c.int32_t,
     entity: Entity,
-    filter: FilterDesc,
+    query: QueryDesc,
     events: [OBSERVER_DESC_EVENT_COUNT_MAX]Entity,
     yield_existing: bool,
     callback: iter_action_t,
     run: run_action_t,
     ctx: rawptr,
-    binding_ctx: rawptr,
     ctx_free: ctx_free_t,
-    binding_ctx_free: ctx_free_t,
-    observable: ^poly_t,
+    callback_ctx: rawptr,
+    callback_ctx_free: ctx_free_t,
+    run_ctx: rawptr,
+    run_ctx_free: ctx_free_t,
+    observable: poly_t,
     last_event_id: ^c.int32_t,
-    term_index: c.int32_t,
+    term_index_: c.int8_t,
+    flags_: flags32_t
 }
 
 // Builtin components
@@ -107,7 +103,11 @@ EcsPoly :: struct
     poly: ^poly_t,
 }
 
-EcsIterable :: Iterable
+EcsDefaultChildComponent :: struct {
+    component: id_t
+}
+
+// EcsIterable :: Iterable
 
 // misc types
 Value :: struct
@@ -119,7 +119,6 @@ Value :: struct
 WorldInfo :: struct
 {
     last_component_id: Entity,
-    last_id: Entity,
     min_id: Entity,
     max_id: Entity,
 
@@ -131,12 +130,13 @@ WorldInfo :: struct
     system_time_total: ftime_t,
     emit_time_total: ftime_t,
     merge_time_total: ftime_t,
-    world_time_total: ftime_t,
-    world_time_total_raw: ftime_t,
     rematch_time_total: ftime_t,
+    world_time_total: c.double,
+    world_time_total_raw: c.double,
 
     frame_count_total: c.int64_t,
     merge_count_total: c.int64_t,
+    eval_comp_monitors_total: c.int64_t,
     rematch_count_total: c.int64_t,
 
     id_create_total: c.int64_t,
@@ -147,18 +147,11 @@ WorldInfo :: struct
     systems_ran_frame: c.int64_t,
     observers_ran_frame: c.int64_t,
 
-    id_count: c.int32_t,
     tag_id_count: c.int32_t,
     component_id_count: c.int32_t,
     pair_id_count: c.int32_t,
-    wildcard_id_count: c.int32_t,
 
     table_count: c.int32_t,
-    tag_table_count: c.int32_t,
-    trivial_table_count: c.int32_t,
-    empty_table_count: c.int32_t,
-    table_record_count: c.int32_t,
-    table_storage_count: c.int32_t,
 
     cmd: struct
     {
@@ -167,10 +160,11 @@ WorldInfo :: struct
         delete_count: c.int64_t,
         clear_count: c.int64_t,
         set_count: c.int64_t,
-        get_mut_count: c.int64_t,
+        ensure_count: c.int64_t,
         modified_count: c.int64_t,
-        other_count: c.int64_t,
         discard_count: c.int64_t,
+        event_count: c.int64_t,
+        other_count: c.int64_t,
         batched_entity_count: c.int64_t,
         batched_command_count: c.int64_t,
     },
@@ -180,7 +174,14 @@ WorldInfo :: struct
 
 QueryGroupInfo :: struct
 {
+    id: c.uint64_t,
     match_count: c.int32_t,
     table_count: c.int32_t,
     ctx: rawptr,
+}
+
+QueryCount :: struct {
+    results: c.int32_t,
+    entities: c.int32_t,
+    tables: c.int32_t
 }

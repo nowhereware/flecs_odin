@@ -9,9 +9,27 @@ flags16_t :: c.uint16_t
 flags32_t :: c.uint32_t
 flags64_t :: c.uint64_t
 
+when FLECS_TERM_COUNT_MAX == 8 {
+    termset_t :: flags8_t
+}
+
+when FLECS_TERM_COUNT_MAX == 16 {
+    termset_t :: flags16_t
+}
+
+when FLECS_TERM_COUNT_MAX == 32 {
+    termset_t :: flags32_t
+}
+
+when FLECS_TERM_COUNT_MAX == 64 {
+    termset_t :: flags64_t
+}
+
 size_t :: c.int32_t
 
-map_key_t :: c.uint64_t
+map_data_t :: c.uint64_t
+map_key_t :: map_data_t
+map_val_t :: map_data_t
 
 va_list :: cstring
 
@@ -20,6 +38,8 @@ os_cond_t :: c.uintptr_t
 os_mutex_t :: c.uintptr_t
 os_dl_t :: c.uintptr_t
 os_sock_t :: c.uintptr_t
+
+os_thread_id_t :: c.uint64_t
 
 ftime_t :: c.float
 
@@ -60,6 +80,7 @@ COMPONENT_MASK :: ~ID_FLAGS_MASK
 
 // HAS_ID_FLAG uses token pasting
 
+EXPR_STACK_MAX :: 256
 
 IS_PAIR :: proc($ID) -> bool
 {

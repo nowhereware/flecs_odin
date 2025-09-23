@@ -9,6 +9,21 @@ id_t :: c.uint64_t
 // Breaks style rules
 Entity :: id_t
 
+Entities :: struct {
+    ids: [^]Entity,
+    count: c.int32_t,
+    alive_count: c.int32_t
+}
+
+EntityIndex :: struct {
+    dense: Vec,
+    pages: Vec,
+    alive_count: c.int32_t,
+    max_id: c.int64_t,
+    page_allocator: BlockAllocator,
+    allocator: ^Allocator
+}
+
 Type :: struct
 {
     array: [^]id_t,
@@ -20,26 +35,33 @@ World :: struct
     hdr: Header,
 
     // Metadata
-    id_index: Map,
-    type_info: ^Sparse,
+    id_index_lo: [^]ComponentRecord,
+    id_index_hi: Map,
+    type_info: Map,
 
-    // Cached id to id records
-    idr_wildcard: ^IdRecord,
-    idr_wildcard_wildcard: ^IdRecord,
-    idr_any: ^IdRecord,
-    idr_isa_wildcard: ^IdRecord,
-    idr_childof_0: ^IdRecord,
+    cr_wildcard: ^ComponentRecord,
+    cr_wildcard_wildcard: ^ComponentRecord,
+    cr_any: ^ComponentRecord,
+    cr_isa_wildcard: ^ComponentRecord,
+    cr_childof_0: ^ComponentRecord,
+    cr_childof_wildcard: ^ComponentRecord,
+    cr_identifier_name: ^ComponentRecord,
+
+    cr_non_fragmenting_head: ^ComponentRecord,
 
     self: ^World,
     observable: Observable,
-    iterable: Iterable,
 
     event_id: c.int32_t,
+
+    table_version: [TABLE_VERSION_ARRAY_SIZE]c.uint32_t,
+    table_columN_version: [TABLE_VERSION_ARRAY_SIZE]c.uint32_t,
+
+    non_trivial_lookup: [HI_COMPONENT_ID]flags8_t,
+    non_trivial_set: [HI_COMPONENT_ID]flags8_t,
+
     range_check_enabled: bool,
     store: Store,
-
-    pending_buffer: ^Sparse,
-    pending_tables: ^Sparse,
 
     monitors: MonitorSet,
     pipeline: Entity,
@@ -47,14 +69,26 @@ World :: struct
     aliases: Hashmap,
     symbols: Hashmap,
 
-    stages: ^Stage,
+    stages: [^]Stage, // update
     stage_count: c.int32_t,
+
+    component_ids: Vec,
+
+    on_commands: on_commands_action,
+    on_commands_active: on_commands_action,
+    on_commands_ctx: rawptr,
+    on_commands_ctx_active: rawptr,
 
     worker_cond: os_cond_t,
     sync_cond: os_cond_t,
     sync_mutex: os_mutex_t,
     workers_running: c.int32_t,
     workers_waiting: c.int32_t,
+    pq: PipelineDesc,
+    workers_use_task_api: bool,
+
+    exclusive_access: os_thread_id_t,
+    exclusive_thread_name: cstring,
 
     world_start_time: Time,
     frame_start_time: Time,
@@ -63,145 +97,11 @@ World :: struct
     info: WorldInfo,
     flags: flags32_t,
 
+    default_query_flags: flags32_t,
+    monitor_generation: c.int32_t,
+
     allocators: WorldAllocators,
     allocator: Allocator,
-
-    _context: rawptr,
-    fini_actions: [^]Vector,
-}
-
-Table :: struct
-{
-    id: c.uint64_t,
-    type: Type,
-    flags: flags32_t,
-    storage_count: c.uint16_t,
-    generation: c.uint16_t,
-
-    records: [^]TableRecord,
-    storage_table: ^Table,
-    storage_ids: [^]id_t,
-    storage_map: [^]c.int32_t,
-
-    node: GraphNode,
-    data: Data,
-    type_info: [^][^]TypeInfo,
-
-    dirty_state: ^c.int32_t,
-
-    sw_count: c.int16_t,
-    sw_offset: c.int16_t,
-    bs_count: c.int16_t,
-    bs_offset: c.int16_t,
-
-    refcount: c.int32_t,
-    lock: c.int32_t,
-    observed_count: c.int32_t,
-    record_count: c.uint16_t,
-}
-
-Term :: struct
-{
-    id: id_t,
-
-    src: TermId,
-    first: TermId,
-    second: TermId,
-
-    inout: InOutKind,
-    oper: OperKind,
-
-    id_flags: id_t,
-    name: cstring,
-
-    field_index: c.int32_t,
-
-    move: bool,
-}
-
-Query :: struct
-{
-    hdr: Header,
-
-    filter: Filter,
-    cache: TableCache,
-    list: QueryTableList,
-    groups: Map,
-    order_by_component: Entity,
-    order_by: order_by_action_t,
-    sort_table: sort_table_action_t,
-    table_slices: [^]Vector,
-
-    group_by_id: Entity,
-    group_by: group_by_action_t,
-    on_group_create: group_create_action_t,
-    on_group_delete: group_delete_action_t,
-    group_by_ctx: rawptr,
-    group_by_ctx_free: ctx_free_t,
-
-    parent: ^Query,
-    subqueries: [^]Vector,
-
-    flags: flags32_t,
-    cascade_by: c.int32_t,
-    match_count: c.int32_t,
-    prev_match_count: c.int32_t,
-    rematch_count: c.int32_t,
-
-    world: ^World,
-    iterable: ^Iterable,
-    dtor: poly_dtor_t,
-    entity: Entity,
-
-    allocators: QueryAllocators,
-}
-
-Filter :: struct
-{
-    hdr: Header,
-
-    terms: [^]Term,
-    term_count: c.int32_t,
-    field_count: c.int32_t,
-
-    owned: bool,
-    terms_owned: bool,
-
-    flags: flags32_t,
-
-    name: cstring,
-    variable_names: [1]cstring,
-    iterable: Iterable,
-}
-
-Rule :: struct
-{
-    hdr: Header,
-
-    world: ^World,
-    operations: ^RuleOp,
-    filter: Filter,
-    vars: [RULE_MAX_VAR_COUNT]RuleVar,
-    var_names: [RULE_MAX_VAR_COUNT]cstring,
-    term_vars: [RULE_MAX_VAR_COUNT]RuleTermVars,
-    var_eval_order: [RULE_MAX_VAR_COUNT]c.int32_t,
-
-    var_count: c.int32_t,
-    subj_var_count: c.int32_t,
-    frame_count: c.int32_t,
-    operation_count: c.int32_t,
-
-    iterable: Iterable,
-}
-
-Observer :: struct
-{
-    hdr: Header,
-    filter: Filter,
-    events: [OBSERVER_DESC_EVENT_COUNT_MAX]Entity,
-    event_count: c.int32_t,
-    callback: iter_action_t,
-    run: run_action_t,
 
     ctx: rawptr,
     binding_ctx: rawptr,
@@ -209,22 +109,185 @@ Observer :: struct
     ctx_free: ctx_free_t,
     binding_ctx_free: ctx_free_t,
 
-    observable: ^Observable,
-    last_event_id: ^c.int32_t,
-    register_id: id_t,
-    term_index: c.int32_t,
+    fini_actions: Vec,
+}
 
-    is_monitor: bool,
-    is_multi: bool,
+when FLECS_DEBUG {
+    TableMetadata :: struct {
+        hash: c.uint64_t,
+        lock: c.int32_t,
+        traversable_count: c.int32_t,
+
+        generation: c.uint16_t,
+        record_count: c.int16_t,
+
+        bs_count: c.int16_t,
+        bs_offset: c.int16_t,
+        bs_columns: [^]Bitset,
+
+        records: [^]TableRecord,
+        childof_r: ^PairRecord,
+
+        parent: struct {
+            world: ^World,
+            id: Entity
+        },
+
+        name_column: c.int16_t,
+        doc_name_column: c.int16_t
+    }
+} else {
+    TableMetadata :: struct {
+        hash: c.uint64_t,
+        lock: c.int32_t,
+        traversable_count: c.int32_t,
+
+        generation: c.uint16_t,
+        record_count: c.int16_t,
+
+        bs_count: c.int16_t,
+        bs_offset: c.int16_t,
+        bs_columns: [^]Bitset,
+
+        records: [^]TableRecord,
+        childof_r: ^PairRecord,
+    }
+
+}
+
+DeleteEmptyTablesDesc :: struct {
+    clear_generation: c.uint16_t,
+    delete_generaiton: c.uint16_t,
+    time_budget_seconds: c.double
+}
+
+Table :: struct
+{
+    id: c.uint64_t,
+    flags: flags32_t,
+    column_count: c.int16_t,
+    version: c.uint16_t,
+    bloom_filter: c.uint64_t,
+    type: Type,
+
+    data: Data,
+    node: GraphNode,
+
+    component_map: ^c.int16_t,
+    dirty_state: ^c.int32_t,
+    column_map: [^]c.int16_t,
+
+    _: ^TableMetadata
+}
+
+Term :: struct
+{
+    id: id_t,
+
+    src: TermRef,
+    first: TermRef,
+    second: TermRef,
+
+    trav: Entity,
+
+    inout: c.int16_t,
+    oper: c.int16_t,
+
+    field_index: c.int8_t,
+    flags_: flags16_t
+}
+
+Query :: struct
+{
+    hdr: Header,
+
+    terms: [^]Term,
+    sizes: [^]c.int32_t,
+    ids: [^]id_t,
+
+    bloom_filter: c.uint64_t,
+    flags: flags32_t,
+    var_count: c.int8_t,
+    term_count: c.int8_t,
+    field_count: c.int8_t,
+
+    fixed_fields: termset_t,
+    var_fields: termset_t,
+    static_id_fields: termset_t,
+    data_fields: termset_t,
+    write_fields: termset_t,
+    read_fields: termset_t,
+    row_fields: termset_t,
+    shared_readonly_fields: termset_t,
+    set_fields: termset_t,
+
+    cache_kind: QueryCacheKind,
+
+    vars: [^]cstring,
+
+    ctx: rawptr,
+    binding_ctx: rawptr,
+
+    entity: Entity,
+    real_world: ^World,
+    world: ^World,
+
+    eval_count: c.int32_t
+}
+
+Observer :: struct
+{
+    hdr: Header,
+    query: ^Query,
+    events: [OBSERVER_DESC_EVENT_COUNT_MAX]Entity,
+    event_count: c.int32_t,
+    callback: iter_action_t,
+    run: run_action_t,
+
+    ctx: rawptr,
+    callback_ctx: rawptr,
+    run_ctx: rawptr,
+
+    ctx_free: ctx_free_t,
+    callback_ctx_free: ctx_free_t,
+    run_ctx_free: ctx_free_t,
+
+    observable: ^Observable,
 
     world: ^World,
     entity: Entity,
-    dtor: poly_dtor_t,
+}
+
+// Opaque type
+EventIdRecord :: struct {
+    self: Map,
+    self_up: Map,
+    up: Map,
+
+    observers: Map,
+
+    set_observers: Map,
+    entity_observers: Map,
+
+    observer_count: c.int32_t
+}
+
+EventRecord :: struct {
+    any: ^EventIdRecord,
+    wildcard: ^EventIdRecord,
+    wildcard_pair: ^EventIdRecord,
+    event_ids: Map,
+    event: Entity
 }
 
 Observable :: struct
 {
+    on_add: EventRecord,
+    on_remove: EventRecord,
+    on_set: EventRecord,
+    on_wildcard: EventRecord,
     events: ^Sparse,
+    last_observer_id: ^c.uint64_t
 }
 
 Iter :: struct
@@ -232,47 +295,45 @@ Iter :: struct
     world: ^World,
     real_world: ^World,
 
+    offset: c.int32_t,
+    count: c.int32_t,
     entities: [^]Entity,
     ptrs: [^]rawptr,
+    trs: [^]^TableRecord,
     sizes: [^]size_t,
     table: ^Table,
     other_table: ^Table,
     ids: [^]id_t,
-    variables: [^]Var,
-    columns: [^]c.int32_t,
     sources: [^]Entity,
-    match_indices: [^]c.int32_t,
-
-    references: [^]Ref,
     constrained_vars: flags64_t,
-    group_id: c.uint64_t,
-    field_count: c.int32_t,
+    set_fields: termset_t,
+    ref_fields: termset_t,
+    row_fields: termset_t,
+    up_fields: termset_t,
 
     system: Entity,
     event: Entity,
     event_id: id_t,
+    event_cur: c.int32_t,
 
-    terms: [^]Term,
-    table_count: c.int32_t,
-    term_index: c.int32_t,
-    variable_count: c.int32_t,
-    variable_names: [^]cstring,
-
+    field_count: c.int8_t,
+    term_index: c.int8_t,
+    query: ^Query,
+    
     param: rawptr,
     ctx: rawptr,
     binding_ctx: rawptr,
+    callback_ctx: rawptr,
+    run_ctx: rawptr,
 
     delta_time: ftime_t,
     delta_system_time: ftime_t,
 
     frame_offset: c.int32_t,
-    offset: c.int32_t,
-    count: c.int32_t,
-    instance_count: c.int32_t,
 
     flags: flags32_t,
     interrupted_by: Entity,
-    priv: IterPrivate,
+    priv_: IterPrivate,
 
     next: iter_next_action_t,
     callback: iter_action_t,
@@ -284,8 +345,11 @@ Ref :: struct
 {
     entity: Entity,
     id: Entity,
-    tr: ^TableRecord,
+    table_id: c.uint64_t,
+    table_version_fast: c.uint32_t,
+    table_version: c.uint16_t,
     record: ^Record,
+    ptr: rawptr,
 }
 
 TypeHooks :: struct
@@ -299,16 +363,24 @@ TypeHooks :: struct
     move_ctor: move_t,
     ctor_move_dtor: move_t,
     move_dtor: move_t,
+
+    cmp: cmp_t,
+    equals: equals_t,
+
+    flags: flags32_t,
     
     on_add: iter_action_t,
     on_set: iter_action_t,
     on_remove: iter_action_t,
+    on_replace: iter_action_t,
 
     ctx: rawptr,
     binding_ctx: rawptr,
+    lifecycle_ctx: rawptr,
 
     ctx_free: ctx_free_t,
     binding_ctx_free: ctx_free_t,
+    lifecycle_ctx_free: ctx_free_t,
 }
 
 TypeInfo :: struct
@@ -335,7 +407,6 @@ VARIABLE_COUNT_MAX :: 64
 // Function Prototypes
 run_action_t :: #type proc "c" (it: ^Iter)
 iter_action_t :: #type proc (it: ^Iter)
-iter_init_action_t :: #type proc "c" (world: ^World, iterable: ^poly_t, it: ^Iter, filter: ^Term)
 iter_next_action_t :: #type proc "c" (it: ^Iter) -> c.bool
 iter_fini_action_t :: #type proc "c" (it: ^Iter)
 order_by_action_t :: #type proc "c" (e1: Entity, ptr1: rawptr, e2: Entity, ptr2: rawptr) -> c.int
@@ -351,6 +422,8 @@ hash_value_action_t :: #type proc "c" (ptr: rawptr) -> c.uint64_t
 xtor_t :: #type proc "c" (ptr: rawptr, count: c.int32_t, type_info: ^TypeInfo)
 copy_t :: #type proc "c" (dst_ptr: rawptr, src_ptr: rawptr, count: c.int32_t, type_info: ^TypeInfo)
 move_t :: #type proc "c" (dst_ptr: rawptr, src_ptr: rawptr, count: c.int32_t, type_info: ^TypeInfo)
+cmp_t :: #type proc "c" (a_ptr: rawptr, b_ptr: rawptr, type_info: ^TypeInfo) -> bool
+equals_t :: #type proc "c" (a_ptr: rawptr, b_ptr: rawptr, type_info: ^TypeInfo) -> bool
 poly_dtor_t :: #type proc "c" (poly: ^poly_t)
 
 MixinKind :: enum
@@ -366,20 +439,21 @@ MixinKind :: enum
 
 Header :: struct
 {
-    magic: c.int32_t,
     type: c.int32_t,
+    refcount: c.int32_t,
     mixins: ^Mixins,
 }
 
-Iterable :: struct
-{
-    init: iter_init_action_t,
-}
+// Iterable :: struct
+// {
+//     init: iter_init_action_t,
+// }
 
 InOutKind :: enum c.int
 {
     InOutDefault,
     InOutNone,
+    InOutFilter,
     InOut,
     In,
     Out,
@@ -396,18 +470,12 @@ OperKind :: enum c.int
     NotFrom,
 }
 
-TermFlags :: enum u32
+QueryCacheKind :: enum c.int
 {
-    Self = u32(1) << 1,
-    Up = u32(1) << 2,
-    Down = u32(1) << 3,
-    Cascade = u32(1) << 4,
-    Parent = u32(1) << 5,
-    IsVariable = u32(1) << 6,
-    IsEntity = u32(1) << 7,
-    Filter = u32(1) << 8,
-
-    TraverseFlags = (Up|Down|Self|Cascade|Parent),
+    Default,
+    Auto,
+    All,
+    None
 }
 
 TermId :: struct
@@ -418,35 +486,161 @@ TermId :: struct
     flags: flags32_t,
 }
 
+TermRef :: struct
+{
+    id: Entity,
+    name: cstring
+}
+
 // Term, Filter, Observer, TypeHooks, TypeInfo
 
-Stage :: struct
-{
-    hdr: Header,
-
-    // Unique id
-    id: c.int32_t,
-
-    // Deferred command queue
-    _defer: c.int32_t,
-    commands: Vec,
-    defer_stack: Stack,
+Commands :: struct {
+    queue: Vec,
+    stack: Stack,
+    entries: Sparse
 }
+
+ExprValue :: struct {
+    value: Value,
+    type_info: ^TypeInfo,
+    owned: bool
+}
+
+ExprStackFrame :: struct {
+    cur: StackCursor,
+    sp: c.int32_t
+}
+
+ExprStack :: struct {
+    values: [EXPR_STACK_MAX]ExprValue,
+    frames: [EXPR_STACK_MAX]ExprStackFrame,
+    stack: Stack,
+    frame: c.int32_t,
+}
+
+ScriptRuntime :: struct {
+    allocator: Allocator,
+    expr_stack: ExprStack,
+    stack: Stack,
+    _using: Vec,
+    with: Vec,
+    with_type_info: Vec,
+    annot: Vec,
+}
+
+StageAllocators :: struct {
+    iter_stack: Stack,
+    deser_stack: Stack,
+    cmd_entry_chunk: BlockAllocator,
+    query_impl: BlockAllocator,
+    query_cache: BlockAllocator,
+}
+
+when FLECS_SCRIPT {
+    Stage :: struct
+    {
+        hdr: Header,
+
+        // Unique id
+        id: c.int32_t,
+
+        // Deferred command queue
+        _defer: c.int32_t,
+        commands: ^Commands,
+        cmd_stack: [2]Commands,
+        cmd_flushing: bool,
+
+        thread_ctx: ^World,
+        world: ^World,
+        thread: os_thread_t,
+
+        post_frame_actions: Vec,
+
+        scope: Entity,
+        with: Entity,
+        base: Entity,
+
+        lookup_path: ^Entity,
+
+        system: Entity,
+
+        allocators: StageAllocators,
+        allocator: Allocator,
+
+        variables: Vec,
+        operations: Vec,
+
+        runtime: ^ScriptRuntime
+    }
+} else {
+    Stage :: struct
+    {
+        hdr: Header,
+
+        // Unique id
+        id: c.int32_t,
+
+        // Deferred command queue
+        _defer: c.int32_t,
+        commands: ^Commands,
+        cmd_stack: [2]Commands,
+        cmd_flushing: bool,
+
+        thread_ctx: ^World,
+        world: ^World,
+        thread: os_thread_t,
+
+        post_frame_actions: Vec,
+
+        scope: Entity,
+        with: Entity,
+        base: Entity,
+
+        lookup_path: ^Entity,
+
+        system: Entity,
+
+        allocators: StageAllocators,
+        allocator: Allocator,
+
+        variables: Vec,
+        operations: Vec,
+    }
+}
+
 
 Record :: struct
 {
+    cr: ^ComponentRecord,
     table: ^Table,
     row: c.uint32_t,
+    dense: c.int32_t
 }
 
+// Opaque
+Column :: struct {
+    data: rawptr,
+    ti: ^TypeInfo
+}
+
+// Opaque, gonna stop replicating these cause I don't think it's necessary
+TableOverrides :: struct { }
+
+// Opaque
 Data :: struct
 {
-    entities: Vec,
-    records: Vec,
-    columns: [^]Vec,
-    sw_columns: [^]Switch,
-    bs_columns: [^]Bitset,
+    entities: [^]Entity,
+    columns: [^]Column,
+    overrides: [^]TableOverrides,
+    count: c.int32_t,
+    size: c.int32_t,
 }
+
+// Opaque
+QueryCacheMatch :: struct {}
+
+// Opaque
+QueryCacheGroup :: struct {}
 
 // Sparse
 
@@ -483,11 +677,25 @@ QueryTableNode :: struct
     match: ^QueryTableMatch,
 }
 
+TableRecords :: struct {
+    array: [^]TableRecord,
+    count: c.int32_t
+}
+
 TableRecord :: struct
 {
     hdr: TableCacheHdr,
-    column: c.int32_t,
-    count: c.int32_t,
+    index: c.int16_t,
+    count: c.int16_t,
+    column: c.int16_t,
+}
+
+TableDiff :: struct
+{
+    added: Type,
+    removed: Type,
+    added_flags: flags32_t,
+    removed_flags: flags32_t,
 }
 
 // Allocator
@@ -509,20 +717,6 @@ Var :: struct
 
 // Ref
 
-StackPage :: struct
-{
-    data: rawptr,
-    next: ^StackPage,
-    sp: c.int16_t,
-    id: c.uint32_t,
-}
-
-StackCursor :: struct
-{
-    cur: ^StackPage,
-    sp: c.int16_t,
-}
-
 PageIter :: struct
 {
     offset: c.int32_t,
@@ -540,7 +734,61 @@ TableCacheIter :: struct
 {
     cur: ^TableCacheHdr,
     next: ^TableCacheHdr,
-    next_list: [^]TableCacheHdr,
+    iter_fill: bool,
+    iter_empty: bool
+}
+
+ReachableCache :: struct {
+    generation: c.int32_t,
+    current: c.int32_t,
+    ids: Vec
+}
+
+PairRecord :: struct {
+    name_index: ^Hashmap,
+    ordered_children: Vec,
+
+    first: IdRecordElem,
+    second: IdRecordElem,
+    trav: IdRecordElem,
+
+    parent: ^ComponentRecord,
+    reachable: ReachableCache
+}
+
+when FLECS_DEBUG {
+    ComponentRecord :: struct {
+        cache: TableCache,
+        id: id_t,
+        flags: flags32_t,
+        str: cstring,
+        type_info: ^TypeInfo,
+        sparse: rawptr,
+        pair: PairRecord,
+        non_fragmenting: IdRecordElem,
+        refcount: c.int32_t,
+        keep_alive: c.int32_t,
+    }
+} else {
+    ComponentRecord :: struct {
+        cache: TableCache,
+        id: id_t,
+        flags: flags32_t,
+        type_info: ^TypeInfo,
+        sparse: rawptr,
+        pair: PairRecord,
+        non_fragmenting: IdRecordElem,
+        refcount: c.int32_t,
+        keep_alive: c.int32_t,
+    }
+}
+
+TableCacheHdr :: struct
+{
+    cr: ^ComponentRecord,
+    table: ^Table,
+    prev: ^TableCacheHdr,
+    next: ^TableCacheHdr,
 }
 
 TermIter :: struct
@@ -576,15 +824,6 @@ IterKind :: enum c.int
     None,
 }
 
-FilterIter :: struct
-{
-    filter: ^Filter,
-    kind: IterKind,
-    term_iter: TermIter,
-    matches_left: c.int32_t,
-    pivot_term: c.int32_t,
-}
-
 QueryIter :: struct
 {
     query: ^Query,
@@ -597,13 +836,6 @@ QueryIter :: struct
     skip_count: c.int32_t,
 }
 
-SnapshotIter :: struct
-{
-    filter: Filter,
-    tables: ^Vector,
-    index: c.int32_t,
-}
-
 SparseIter :: struct
 {
     sparse: ^Sparse,
@@ -611,18 +843,6 @@ SparseIter :: struct
     size: size_t,
     i: c.int32_t,
     count: c.int32_t,
-}
-
-RuleIter :: struct
-{
-    rule: ^Rule,
-    registers: [^]Var,
-    op_ctx: ^RuleOpCtx,
-    columns: [^]c.int32_t,
-    entity: Entity,
-    redo: bool,
-    op: c.int32_t,
-    sp: c.int32_t,
 }
 
 iter_cache_ids :: u32(1) << u32(0)
@@ -633,6 +853,16 @@ iter_cache_ptrs :: u32(1) << u32(4)
 iter_cache_match_indices :: u32(1) << u32(5)
 iter_cache_variables :: u32(1) << u32(6)
 iter_cache_all :: 255
+
+EachIter :: struct {
+    it: TableCacheIter,
+
+    ids: id_t,
+    sources: Entity,
+    sizes: size_t,
+    columns: c.int32_t,
+    trs: [^]TableRecord
+}
 
 IterCache :: struct
 {
@@ -645,15 +875,14 @@ IterPrivate :: struct
 {
     iter: struct #raw_union
     {
-        term: TermIter,
-        filter: FilterIter,
         query: QueryIter,
-        rule: RuleIter,
-        snapshot: SnapshotIter,
         page: PageIter,
         worker: WorkerIter,
+        each: EachIter
     },
-    cache: IterCache,
+
+    entity_iter: rawptr,
+    stack_cursor: ^StackCursor
 }
 
 // Iter definition
@@ -661,6 +890,6 @@ IterPrivate :: struct
 
 IdRecordElem :: struct
 {
-    prev: ^IdRecord,
-    next: ^IdRecord,
+    prev: ^ComponentRecord,
+    next: ^ComponentRecord,
 }

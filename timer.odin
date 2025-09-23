@@ -6,6 +6,7 @@ EcsTimer :: struct
 {
     timeout: ftime_t,
     time: ftime_t,
+    overshoot: ftime_t,
     fired_count: c.int32_t,
     active: c.bool,
     single_shot: c.bool,

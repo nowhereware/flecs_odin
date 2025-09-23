@@ -11,7 +11,8 @@ AppDesc :: struct
     threads: c.int32_t,
     frames: c.int32_t,
     enable_rest: c.bool,
-    enable_monitor: c.bool,
+    enable_stats: c.bool,
+    port: c.uint16_t,
 
     init: app_init_action_t,
 
